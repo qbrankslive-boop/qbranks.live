@@ -14,14 +14,12 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
-    /* === FONT STACK === */
     body { 
         font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif; 
         overflow: hidden; 
         background: #0f172a; 
         color: #e2e8f0; 
     }
-    /* ================== */
 
     #map { height: 100vh; width: 100vw; }
     .leaflet-tooltip { background-color: rgba(15, 23, 42, 0.95); border: 2px solid #3b82f6; border-radius: 6px; padding: 6px 12px; font-weight: 600; font-size: 13px; color: white; box-shadow: 0 4px 12px rgba(59,130,246,0.4); }
@@ -35,7 +33,6 @@
     .rank-badge { display:inline-block; background:linear-gradient(135deg,#8b5cf6 0%,#6366f1 100%); color:white; padding:5px 12px; border-radius:14px; font-weight:bold; font-size:13px; box-shadow: 0 2px 8px rgba(139,92,246,0.4); }
     .score-badge { display:inline-block; background:linear-gradient(135deg,#ec4899 0%,#f97316 100%); color:white; padding:5px 12px; border-radius:14px; font-weight:bold; font-size:13px; box-shadow:0 2px 8px rgba(236,72,153,0.4); }
     
-    /* CONTROL PANEL */
     .control-panel { 
         position: absolute; top: 20px; left: 70px; 
         background: linear-gradient(135deg,#1e293b 0%,#0f172a 100%); 
@@ -537,7 +534,6 @@ async function refreshData() {
   await loadData();
 }
 
-/* ---------- main data loader ---------- */
 async function loadData() {
   try {
     const locUrl = LOCATION_SHEET;
@@ -546,7 +542,6 @@ async function loadData() {
 
     const [locData, scoreData] = await Promise.all([ loadCSV(locUrl), loadCSV(overallUrl) ]);
 
-    // Determine team name column in score sheet
     const possibleNameCols = ["Team","Team Name","School","School Name","Name"];
     let teamColumnName = null;
     if (scoreData.length > 0) {
@@ -587,7 +582,6 @@ async function loadData() {
     
     let teamsMissingLocation = []; 
 
-    // Iterate score rows and try to find location data
     for (const scoreRow of scoreData) {
         const name = String(scoreRow[teamColumnName] || '').trim();
         if (!name) continue;
@@ -604,13 +598,11 @@ async function loadData() {
             }
         }
         
-        // --- CHECK 1: If location data is completely missing ---
         if (!teamRow) {
             teamsMissingLocation.push(name);
-            continue; // Skip processing this team entirely
+            continue;
         }
         
-        // --- CHECK 2 & 3: Check for valid score and coordinates ---
         const lat = parseFloat(teamRow["Latitude (N∘)"] || teamRow["Latitude"] || teamRow["Lat"]);
         const lon = parseFloat(teamRow["Longitude (W∘ or E∘)"] || teamRow["Longitude"] || teamRow["Lon"]);
         const scoreVal = parseFloat(scoreRow.Score);
@@ -618,7 +610,6 @@ async function loadData() {
 
         if (isNaN(lat) || isNaN(lon) || isNaN(scoreVal)) continue;
         
-        // If all checks pass, add to allTeams
         allTeams.push({
             name,
             lat,
@@ -632,10 +623,8 @@ async function loadData() {
         });
     }
 
-    // Assign missing teams to the global variable
     teamsMissingLocationGlobal = teamsMissingLocation;
 
-    // Console output remains for debugging/copying
     if (teamsMissingLocationGlobal.length > 0) {
         console.warn(`
             🚨 TEAMS MISSING LOCATION DATA (from Overall Sheet but not found in Location Data Sheet) 🚨
@@ -644,8 +633,8 @@ async function loadData() {
         `);
         console.log(teamsMissingLocationGlobal); 
     }
+    calculateStateRanks();
 
-    // Create markers
     const maxScoreLocal = Math.max(...allTeams.map(t => t.score || 0), 0);
     for (const t of allTeams) {
       const radius = computeRadius(t.score, maxScoreLocal); 
@@ -662,14 +651,12 @@ async function loadData() {
       circles.push({ circle, name: t.name, score: t.score, rank: t.rank, lat: t.lat, lon: t.lon, raw: t.rawScoreRow });
     }
 
-    // Create rankings list
     const sorted = [...allTeams].sort((a,b) => {
       const ra = parseInt(a.rank) || 9999999;
       const rb = parseInt(b.rank) || 9999999;
       return ra - rb;
     });
     
-    // Use the integer rank for a robust data-attribute
     const topRankingsHTML = sorted.map((team, index) => {
       const safeName = team.name.replace(/'/g, "\\'");
       const rnum = `#${team.rank}`; 
@@ -678,7 +665,6 @@ async function loadData() {
     
     document.getElementById('topRankings').innerHTML = topRankingsHTML;
 
-    // --- UPDATED STATS PANEL LOGIC ---
     const avgScore = allTeams.reduce((a,b) => a + (b.score||0), 0) / Math.max(allTeams.length,1);
     let statsHTML = `
       <strong>${allTeams.length}</strong> teams loaded<br>
@@ -686,9 +672,7 @@ async function loadData() {
       Avg Score: <strong>${avgScore.toFixed(1)}</strong>
     `;
     
-    // Add the missing teams section directly to the UI
     if (teamsMissingLocationGlobal.length > 0) {
-        // Create an HTML list of the missing teams
         const missingListHTML = teamsMissingLocationGlobal.map(name => `<li>${name}</li>`).join('');
 
         statsHTML += `<br>
@@ -700,13 +684,9 @@ async function loadData() {
     }
     
     document.getElementById('statsSummary').innerHTML = statsHTML;
-    // --- END UPDATED STATS PANEL LOGIC ---
 
-
-    // hide loading
     document.getElementById('loading').classList.add('hidden');
 
-    // apply any active filters (topX)
     filterByRank();
 
     console.log('Data loading completed.');
@@ -717,7 +697,6 @@ async function loadData() {
   }
 }
 
-/* ---------- RENDER CIRCUIT RANKINGS (New) ---------- */
 function renderCircuitRankings(data, targetId) {
     let tableHTML = `<table class="circuit-table">
         <thead>
@@ -743,7 +722,6 @@ function renderCircuitRankings(data, targetId) {
     document.getElementById(targetId).innerHTML = tableHTML;
 }
 
-/* ---------- RENDER ACCOLADES (New) ---------- */
 function renderAccolades(data, targetId) {
     const listHTML = data.map(item => `
         <div class="accolade-item">
@@ -754,14 +732,12 @@ function renderAccolades(data, targetId) {
     document.getElementById(targetId).innerHTML = listHTML;
 }
 
-/* ---------- SWITCH RANKING VIEW (New) ---------- */
 function switchRankingView(view) {
     document.getElementById('overallRankingsContent').classList.add('hidden');
     document.getElementById('hsCircuitRankingsContent').classList.add('hidden');
     document.getElementById('msCircuitRankingsContent').classList.add('hidden');
     document.getElementById('accoladesContent').classList.add('hidden');
 
-    // Show the selected content container
     if (view === 'overall') {
         document.getElementById('overallRankingsContent').classList.remove('hidden');
     } else if (view === 'hs_circuit') {
@@ -774,62 +750,56 @@ function switchRankingView(view) {
 }
 
 
-/* ---------- popup creation: show best set, remove best tournament, remove coords ---------- */
 function makePopupHTML(teamObj) {
   const row = teamObj.rawScoreRow || {};
   const bestSetCol = teamObj.bestSetCol;
   const bestSetVal = bestSetCol ? (row[bestSetCol] || '') : (row['Best Set'] || row['Set'] || '');
   const rankText = teamObj.rank || '';
-  // Note: The POPUP still uses the sheet's actual rank (team.rank) for fidelity
+  
+  let stateRankHTML = '';
+  if (teamObj.stateRank) {
+      stateRankHTML = `<span class="popup-label">State Rank:</span><span class="popup-value">#${teamObj.stateRank} (${teamObj.stateCode})</span>`;
+  }
+
   const popup = 
     `<div class="popup-title">${teamObj.name}</div>
     <div class="popup-stats">
       <span class="popup-label">Score:</span><span class="score-badge">${teamObj.score.toFixed(1)}</span>
-      <span class="popup-label">Rank:</span><span class="rank-badge">${rankText ? '#' + rankText : '—'}</span>
-      <span class="popup-label">Location:</span><span class="popup-value">${teamObj.location || '—'}</span>
+      <span class="popup-label">Nat'l Rank:</span><span class="rank-badge">${rankText ? '#' + rankText : '—'}</span>
+      ${stateRankHTML} <span class="popup-label">Location:</span><span class="popup-value">${teamObj.location || '—'}</span>
       <span class="popup-label">Best Set:</span><span class="popup-value">${bestSetVal || '—'}</span>
     </div>`;
   return popup;
 }
 
-/* ---------- compute radius (FIXED LOGIC) ---------- */
 function computeRadius(score, maxScore) {
-  // Read current size mode directly from the dropdown
   const mode = document.getElementById('sizeMode')?.value || 'score';
   let base;
   
   if (mode === 'uniform') {
-    // Fixed base size for uniform mode
     base = 10000;
   } else { 
-    // Score-based sizing for 'score' mode
-    // Base size is 3000 plus a range of 50000 proportional to the score ratio
     base = 3000 + ((score / (maxScore || 1)) * 50000);
   }
   
-  // Apply the multiplier to the calculated base size
   return base * (radiusMultiplier || 1);
 }
 
-/* ---------- updateSizes: apply slider multiplier to existing circles ---------- */
 function updateSizes() {
   const maxScore = Math.max(...allTeams.map(t=>t.score||0), 0);
   circles.forEach(c => {
-    // Calls fixed computeRadius which now respects sizeMode and multiplier
     const newRadius = computeRadius(c.score, maxScore); 
     c.circle.setRadius(newRadius);
   });
 }
 
-/* ---------- radius slider handler ---------- */
 function handleRadiusSlider() {
   const v = parseFloat(document.getElementById('radiusSlider').value);
   radiusMultiplier = v;
   document.getElementById('radiusVal').innerText = v.toFixed(1);
-  updateSizes(); // Calls updateSizes to re-render circles with new multiplier
+  updateSizes();
 }
 
-/* ---------- color utilities ---------- */
 function randomColor() {
   const colors = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#06b6d4','#6366f1','#f43f5e','#14b8a6','#a855f7'];
   return colors[Math.floor(Math.random()*colors.length)];
@@ -863,18 +833,15 @@ function updateColors() {
   });
 }
 
-/* ---------- toggle panel ---------- */
 function togglePanel() {
   document.getElementById('controlPanel').classList.toggle('hidden');
 }
 
-/* ---------- toggle rankings panel ---------- */
 function toggleRankingsPanel() {
   const panel = document.getElementById('rankingsPanel');
   panel.classList.toggle('hidden');
 }
 
-/* ---------- dark/light mode: change many text elements ---------- */
 function toggleDarkMode() {
   const isDark = document.getElementById('darkMode').checked;
   document.body.style.background = isDark ? '#0f172a' : '#f8fafc';
@@ -908,33 +875,29 @@ function toggleDarkMode() {
     }
   });
 
-  // Specifically adjust the ranking team name text color in Light Mode
   const rankingTeams = document.querySelectorAll('.ranking-item .ranking-team');
   rankingTeams.forEach(team => {
-      team.style.color = isDark ? '#e2e8f0' : '#1e293b'; /* Darker color for light mode */
+      team.style.color = isDark ? '#e2e8f0' : '#1e293b';
   });
   
-  // Specifically adjust the popup value text color in Light Mode
   const popupValues = document.querySelectorAll('.popup-value');
   popupValues.forEach(val => {
-      val.style.color = isDark ? '#e2e8f0' : '#1e293b'; /* Darker color for light mode */
+      val.style.color = isDark ? '#e2e8f0' : '#1e293b';
   });
   
-  // Specifically adjust the circuit table text color in Light Mode
   const circuitTableCells = document.querySelectorAll('.circuit-table');
   circuitTableCells.forEach(table => {
-      table.style.color = isDark ? '#e2e8f0' : '#1e293b'; /* Darker color for light mode */
+      table.style.color = isDark ? '#e2e8f0' : '#1e293b'; 
   });
   const circuitTableHeaders = document.querySelectorAll('.circuit-table th');
   circuitTableHeaders.forEach(th => {
-      th.style.color = isDark ? '#60a5fa' : '#2563eb'; /* Match other headings */
+      th.style.color = isDark ? '#60a5fa' : '#2563eb';
   });
 
 
   createTileLayer(isDark);
 }
 
-/* ---------- filter by rank using single Top X input ---------- */
 function filterByRank() {
   const txt = document.getElementById('topX').value;
   const topX = txt ? parseInt(txt) : null;
@@ -946,7 +909,6 @@ function filterByRank() {
     let rankNum = parseInt(team.rank);
     let shouldShow = false;
 
-    // Logic: If topX is not set, always show. If it is set, only show if rank <= topX.
     if (!topX || isNaN(rankNum)) {
         shouldShow = true; 
     } else if (rankNum <= topX) {
@@ -962,10 +924,8 @@ function filterByRank() {
     }
   });
 
-  // Update rankings panel to match the filter
   const rankingItems = document.querySelectorAll('#topRankings .ranking-item');
   rankingItems.forEach(item => {
-    // We use the data-team-rank attribute which comes directly from the spreadsheet
     const rankAttr = item.getAttribute('data-team-rank');
     const rankNum = parseInt(rankAttr);
     
@@ -980,9 +940,7 @@ function filterByRank() {
   });
 }
 
-/* ---------- zoom to team & open popup & SCROLL RANKINGS ---------- */
 function zoomToTeam(lat, lon, teamName) {
-  // 1. Zoom and open popup
   map.setView([lat, lon], 11);
   setTimeout(() => {
     circles.forEach(c => {
@@ -992,40 +950,33 @@ function zoomToTeam(lat, lon, teamName) {
     });
   }, 300);
 
-  // 2. Scroll rankings and highlight (only in the Overall Team Rankings view)
   const view = document.getElementById('rankingViewSelect').value;
   if (view !== 'overall') return;
 
-  // Remove existing highlights
   document.querySelectorAll('.ranking-item').forEach(item => {
     item.classList.remove('selected');
   });
 
-  // Find and scroll to the matching team in the rankings panel
   const safeName = teamName.replace(/'/g, "\\'");
   const rankItem = document.querySelector(`#topRankings .ranking-item[data-team-name="${safeName}"]`);
   
   if (rankItem) {
-    // Scroll the item into view
     rankItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    // Add highlight
     rankItem.classList.add('selected');
   }
 
 }
 
-/* ---------- search dropdown (scrollable) ---------- */
 let searchTimeout = null;
 function handleSearchInput() {
   const el = document.getElementById('teamSearch');
   const q = el.value.trim().toLowerCase();
   const suggestionsDiv = document.getElementById('suggestions');
 
-  // Remove existing highlights from map and rankings when typing
   document.querySelectorAll('.ranking-item.selected').forEach(item => {
     item.classList.remove('selected');
   });
-  circles.forEach(c => c.circle.setStyle({ opacity:1, fillOpacity:0.5 })); // Restore map opacity
+  circles.forEach(c => c.circle.setStyle({ opacity:1, fillOpacity:0.5 })); 
 
   if (!q) {
     suggestionsDiv.classList.add('hidden');
@@ -1033,7 +984,6 @@ function handleSearchInput() {
     return;
   }
   
-  // Show all matches, relying on CSS max-height and overflow for scrolling
   const matches = allTeams.filter(t => t.name.toLowerCase().includes(q));
   
   if (matches.length === 0) {
@@ -1046,7 +996,6 @@ function handleSearchInput() {
   suggestionsDiv.innerHTML = itemsHTML;
   suggestionsDiv.classList.remove('hidden');
 
-  // show highlight of matches on map (dim others)
   let first = true;
   circles.forEach(c => {
     if (c.name.toLowerCase().includes(q)) {
@@ -1057,7 +1006,6 @@ function handleSearchInput() {
     }
   });
 
-  // position suggestions under input
   const rect = el.getBoundingClientRect();
   suggestionsDiv.style.left = (el.offsetLeft) + 'px';
   suggestionsDiv.style.top = (el.offsetTop + el.offsetHeight + 6) + 'px';
@@ -1072,7 +1020,6 @@ function selectSuggestion(name) {
   if (team) zoomToTeam(team.lat, team.lon, team.name);
 }
 
-/* hide suggestions when clicking outside */
 document.addEventListener('click', (e) => {
   const s = document.getElementById('suggestions');
   if (!s) return;
@@ -1082,14 +1029,11 @@ document.addEventListener('click', (e) => {
   }
 });
 
-/* ---------- helpers ---------- */
 function computeMaxScore() {
   return Math.max(...allTeams.map(t => t.score || 0), 0);
 }
 
-/* ---------- convenience: update sizes/colors on window changes ---------- */
 window.addEventListener('resize', () => {
-  // reposition suggestions if visible
   const el = document.getElementById('teamSearch');
   const s = document.getElementById('suggestions');
   if (s && !s.classList.contains('hidden')) {
@@ -1098,10 +1042,37 @@ window.addEventListener('resize', () => {
   }
 });
 
-/* ---------- initial UI setup ---------- */
 document.getElementById('radiusVal').innerText = document.getElementById('radiusSlider').value;
 
-/* ---------- END ---------- */
+function calculateStateRanks() {
+  const teamsByState = {};
+
+  allTeams.forEach(team => {
+    let state = null;
+
+    const nameMatch = team.name.match(/\(([A-Z]{2})\)/);
+    if (nameMatch) {
+      state = nameMatch[1];
+    } 
+    else if (team.location && team.location.length === 2) {
+      state = team.location;
+    }
+
+    if (state) {
+      if (!teamsByState[state]) teamsByState[state] = [];
+      teamsByState[state].push(team);
+    }
+  });
+
+  Object.keys(teamsByState).forEach(state => {
+    teamsByState[state].sort((a, b) => b.score - a.score);
+    
+    teamsByState[state].forEach((team, index) => {
+      team.stateRank = index + 1;
+      team.stateCode = state;
+    });
+  });
+}
 </script>
 
 </body>
