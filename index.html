@@ -1,1089 +1,1686 @@
 <!DOCTYPE html>
+
 <html>
+
 <head>
-  <meta charset="utf-8" />
-  <title>QBRanks.live</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
-  <style>
-    /* BASE STYLES */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      overflow: hidden;
-      background: #0f172a;
-    }
-    
-    #map { 
-      height: 100vh; 
-      width: 100vw; 
-    }
-    
-    /* LEAFLET OVERRIDES (DARK MODE DEFAULT) */
-    .leaflet-tooltip {
-      background-color: rgba(15, 23, 42, 0.95);
-      border: 2px solid #3b82f6;
-      border-radius: 6px;
-      padding: 6px 12px;
-      font-weight: 600;
-      font-size: 13px;
-      color: white;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-    }
-    
-    .leaflet-popup-content-wrapper {
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-    }
-    
-    .leaflet-popup-content {
-      margin: 20px;
-      font-size: 14px;
-      line-height: 1.6;
-      color: #e2e8f0;
-    }
-    
-    .leaflet-popup-tip {
-      background: #1e293b;
-    }
-    
-    .popup-title {
-      font-size: 20px;
-      font-weight: bold;
-      color: #60a5fa;
-      margin-bottom: 12px;
-      border-bottom: 2px solid #3b82f6;
-      padding-bottom: 8px;
-      text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-    }
-    
-    .popup-stats {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 10px 16px;
-      margin-top: 12px;
-    }
-    
-    .popup-label {
-      font-weight: 600;
-      color: #94a3b8;
-    }
-    
-    .popup-value {
-      color: #e2e8f0;
-    }
-    
-    .rank-badge {
-      display: inline-block;
-      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-      color: white;
-      padding: 5px 12px;
-      border-radius: 14px;
-      font-weight: bold;
-      font-size: 13px;
-      box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
-    }
-    
-    .score-badge {
-      display: inline-block;
-      background: linear-gradient(135deg, #ec4899 0%, #f97316 100%);
-      color: white;
-      padding: 5px 12px;
-      border-radius: 14px;
-      font-weight: bold;
-      font-size: 13px;
-      box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
-    }
-    
-    /* CONTROL PANEL & GENERAL PANELS */
-    .panel-base {
-      position: absolute;
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-      z-index: 1000;
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      backdrop-filter: blur(10px);
-      padding: 24px;
-      color: #e2e8f0;
-    }
 
-    .control-panel {
-      top: 20px;
-      left: 70px;
-      max-width: 340px;
-    }
-    
-    .control-panel h2 {
-      margin: 0 0 20px 0;
-      font-size: 24px;
-      color: #60a5fa;
-      border-bottom: 3px solid #3b82f6;
-      padding-bottom: 10px;
-      text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-    }
-    
-    .control-group {
-      margin-bottom: 18px;
-    }
-    
-    .control-group label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #94a3b8;
-      font-size: 14px;
-    }
-    
-    .control-group select,
-    .control-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border: 2px solid rgba(59, 130, 246, 0.3);
-      border-radius: 8px;
-      font-size: 14px;
-      transition: all 0.3s;
-      background: rgba(15, 23, 42, 0.8);
-      color: #e2e8f0;
-    }
-    
-    .control-group select:focus,
-    .control-group input:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-    }
-    
-    .control-group input::placeholder {
-      color: #64748b;
-    }
-    
-    .stats-summary {
-      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-      color: white;
-      padding: 16px;
-      border-radius: 10px;
-      margin-top: 18px;
-      font-size: 14px;
-      line-height: 1.8;
-      box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
-    }
-    
-    .stats-summary strong {
-      font-size: 18px;
-    }
-    
-    .toggle-panel {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-      border: none;
-      padding: 12px 16px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 20px;
-      color: white;
-      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
-      z-index: 1001;
-      transition: all 0.3s;
-    }
-    
-    .toggle-panel:hover {
-      transform: scale(1.1);
-      box-shadow: 0 6px 24px rgba(59, 130, 246, 0.6);
-    }
-    
-    .legend {
-      bottom: 30px;
-      right: 20px;
-      padding: 20px;
-      font-size: 13px;
-    }
-    
-    .legend h3 {
-      margin: 0 0 12px 0;
-      font-size: 16px;
-      color: #60a5fa;
-      border-bottom: 2px solid #3b82f6;
-      padding-bottom: 6px;
-    }
-    
-    .legend-item {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    
-    .legend-circle {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      margin-right: 12px;
-      border: 2px solid #3b82f6;
-    }
-    
-    .loading {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      padding: 40px 60px;
-      border-radius: 16px;
-      box-shadow: 0 12px 48px rgba(0,0,0,0.5);
-      z-index: 2000;
-      font-size: 20px;
-      font-weight: bold;
-      color: #60a5fa;
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      animation: pulse 2s ease-in-out infinite;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-    
-    .hidden {
-      display: none;
-    }
-    
-    .rankings-panel {
-      top: 20px;
-      right: 20px;
-      max-width: 280px;
-      max-height: 400px;
-      overflow-y: auto;
-      padding: 20px;
-    }
-    
-    .rankings-panel h3 {
-      margin: 0 0 15px 0;
-      font-size: 18px;
-      color: #60a5fa;
-      border-bottom: 2px solid #3b82f6;
-      padding-bottom: 8px;
-    }
-    
-    .ranking-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      margin-bottom: 8px;
-      background: rgba(59, 130, 246, 0.1);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s;
-      border: 1px solid transparent;
-      color: #e2e8f0;
-    }
-    
-    .ranking-item:hover {
-      background: rgba(59, 130, 246, 0.2);
-      border-color: #3b82f6;
-      transform: translateX(5px);
-    }
-    
-    .ranking-number {
-      font-weight: bold;
-      color: #60a5fa;
-      font-size: 16px;
-      min-width: 30px;
-    }
-    
-    .ranking-team {
-      flex: 1;
-      margin: 0 10px;
-      font-size: 13px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    
-    .ranking-score {
-      font-weight: bold;
-      color: #ec4899;
-      font-size: 14px;
-    }
-    
-    .filter-section {
-      margin-bottom: 18px;
-      padding: 12px;
-      background: rgba(59, 130, 246, 0.1);
-      border-radius: 8px;
-      border: 1px solid rgba(59, 130, 246, 0.2);
-    }
-    
-    .filter-section h4 {
-      margin: 0 0 10px 0;
-      font-size: 14px;
-      color: #60a5fa;
-      font-weight: 600;
-    }
-    
-    .checkbox-group {
-      display: flex;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    
-    .checkbox-group input[type="checkbox"] {
-      margin-right: 8px;
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
-    }
-    
-    .checkbox-group label {
-      margin: 0;
-      cursor: pointer;
-      color: #cbd5e1;
-      font-size: 13px;
-    }
-    
-    .rankings-panel::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    .rankings-panel::-webkit-scrollbar-track {
-      background: rgba(15, 23, 42, 0.5);
-      border-radius: 4px;
-    }
-    
-    .rankings-panel::-webkit-scrollbar-thumb {
-      background: #3b82f6;
-      border-radius: 4px;
-    }
-    
-    .rankings-panel::-webkit-scrollbar-thumb:hover {
-      background: #60a5fa;
-    }
-    
-    /* ACCOLADES PANEL */
-    .accolades-panel {
-        bottom: 20px;
-        left: 70px;
-        max-width: 340px;
-        padding: 24px;
-        max-height: 45vh;
-        overflow-y: auto;
-    }
+<meta charset="utf-8" />
 
-    .accolades-panel h3 {
-      font-size: 18px;
-      color: #60a5fa;
-      border-bottom: 2px solid #3b82f6;
-      padding-bottom: 8px;
-      margin-bottom: 15px;
-    }
+<title>QBRanks.live</title>
 
-    .accolade-item {
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 1px dotted rgba(59, 130, 246, 0.3);
-    }
-    
-    .accolade-item:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
-    }
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    .accolade-item strong {
-        display: block;
-        font-size: 14px;
-        color: #60a5fa;
-        margin-bottom: 4px;
-    }
-    
-    .accolade-detail {
-        font-size: 13px;
-        color: #e2e8f0;
-    }
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
-    .accolade-detail .value {
-        font-weight: bold;
-        color: #ec4899;
-    }
-    
-    .accolade-detail .rank-value {
-        font-weight: bold;
-        color: #8b5cf6;
-    }
-    
-    .rank-table-container {
-        margin-top: 15px;
-        max-height: 200px;
-        overflow-y: auto;
-        padding-right: 10px;
-    }
-    
-    .rank-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 12px;
-        text-align: left;
-    }
-    
-    .rank-table th {
-        color: #94a3b8;
-        padding: 8px 4px;
-        border-bottom: 1px solid rgba(59, 130, 246, 0.3);
-        font-weight: 600;
-    }
-    
-    .rank-table td {
-        padding: 6px 4px;
-        border-bottom: 1px dashed rgba(59, 130, 246, 0.1);
-        color: #e2e8f0;
-    }
-    
-    .rank-table tr:hover {
-        background: rgba(59, 130, 246, 0.05);
-    }
-    
-    .rank-table .rank-num {
-        font-weight: bold;
-        color: #60a5fa;
-        min-width: 20px;
-        text-align: center;
-    }
-  </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+
+<style>
+
+* {
+
+margin: 0;
+
+padding: 0;
+
+box-sizing: border-box;
+
+}
+
+
+body {
+
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+
+overflow: hidden;
+
+background: #0f172a;
+
+}
+
+
+#map {
+
+height: 100vh;
+
+width: 100vw;
+
+}
+
+
+.leaflet-tooltip {
+
+background-color: rgba(15, 23, 42, 0.95);
+
+border: 2px solid #3b82f6;
+
+border-radius: 6px;
+
+padding: 6px 12px;
+
+font-weight: 600;
+
+font-size: 13px;
+
+color: white;
+
+box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+
+}
+
+
+.leaflet-popup-content-wrapper {
+
+border-radius: 12px;
+
+box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+
+background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+
+border: 1px solid rgba(59, 130, 246, 0.3);
+
+}
+
+
+.leaflet-popup-content {
+
+margin: 20px;
+
+font-size: 14px;
+
+line-height: 1.6;
+
+color: #e2e8f0;
+
+}
+
+
+.leaflet-popup-tip {
+
+background: #1e293b;
+
+}
+
+
+.popup-title {
+
+font-size: 20px;
+
+font-weight: bold;
+
+color: #60a5fa;
+
+margin-bottom: 12px;
+
+border-bottom: 2px solid #3b82f6;
+
+padding-bottom: 8px;
+
+text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+
+}
+
+
+.popup-stats {
+
+display: grid;
+
+grid-template-columns: auto 1fr;
+
+gap: 10px 16px;
+
+margin-top: 12px;
+
+}
+
+
+.popup-label {
+
+font-weight: 600;
+
+color: #94a3b8;
+
+}
+
+
+.popup-value {
+
+color: #e2e8f0;
+
+}
+
+
+.rank-badge {
+
+display: inline-block;
+
+background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+
+color: white;
+
+padding: 5px 12px;
+
+border-radius: 14px;
+
+font-weight: bold;
+
+font-size: 13px;
+
+box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+
+}
+
+
+.score-badge {
+
+display: inline-block;
+
+background: linear-gradient(135deg, #ec4899 0%, #f97316 100%);
+
+color: white;
+
+padding: 5px 12px;
+
+border-radius: 14px;
+
+font-weight: bold;
+
+font-size: 13px;
+
+box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
+
+}
+
+
+.control-panel {
+
+position: absolute;
+
+top: 20px;
+
+left: 70px;
+
+background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+
+padding: 24px;
+
+border-radius: 16px;
+
+box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+
+z-index: 1000;
+
+max-width: 340px;
+
+border: 1px solid rgba(59, 130, 246, 0.3);
+
+backdrop-filter: blur(10px);
+
+}
+
+
+.control-panel h2 {
+
+margin: 0 0 20px 0;
+
+font-size: 24px;
+
+color: #60a5fa;
+
+border-bottom: 3px solid #3b82f6;
+
+padding-bottom: 10px;
+
+text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+
+}
+
+
+.control-group {
+
+margin-bottom: 18px;
+
+}
+
+
+.control-group label {
+
+display: block;
+
+font-weight: 600;
+
+margin-bottom: 8px;
+
+color: #94a3b8;
+
+font-size: 14px;
+
+}
+
+
+.control-group select,
+
+.control-group input {
+
+width: 100%;
+
+padding: 10px 14px;
+
+border: 2px solid rgba(59, 130, 246, 0.3);
+
+border-radius: 8px;
+
+font-size: 14px;
+
+transition: all 0.3s;
+
+background: rgba(15, 23, 42, 0.8);
+
+color: #e2e8f0;
+
+}
+
+
+.control-group select:focus,
+
+.control-group input:focus {
+
+outline: none;
+
+border-color: #3b82f6;
+
+box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+
+}
+
+
+.control-group input::placeholder {
+
+color: #64748b;
+
+}
+
+
+.stats-summary {
+
+background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+
+color: white;
+
+padding: 16px;
+
+border-radius: 10px;
+
+margin-top: 18px;
+
+font-size: 14px;
+
+line-height: 1.8;
+
+box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+
+}
+
+
+.stats-summary strong {
+
+font-size: 18px;
+
+}
+
+
+.toggle-panel {
+
+position: absolute;
+
+top: 20px;
+
+left: 20px;
+
+background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+
+border: none;
+
+padding: 12px 16px;
+
+border-radius: 10px;
+
+cursor: pointer;
+
+font-size: 20px;
+
+color: white;
+
+box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+
+z-index: 1001;
+
+transition: all 0.3s;
+
+}
+
+
+.toggle-panel:hover {
+
+transform: scale(1.1);
+
+box-shadow: 0 6px 24px rgba(59, 130, 246, 0.6);
+
+}
+
+
+.legend {
+
+position: absolute;
+
+bottom: 30px;
+
+right: 20px;
+
+background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+
+padding: 20px;
+
+border-radius: 12px;
+
+box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+
+z-index: 1000;
+
+font-size: 13px;
+
+border: 1px solid rgba(59, 130, 246, 0.3);
+
+color: #e2e8f0;
+
+}
+
+
+.legend h3 {
+
+margin: 0 0 12px 0;
+
+font-size: 16px;
+
+color: #60a5fa;
+
+border-bottom: 2px solid #3b82f6;
+
+padding-bottom: 6px;
+
+}
+
+
+.legend-item {
+
+display: flex;
+
+align-items: center;
+
+margin-bottom: 10px;
+
+}
+
+
+.legend-circle {
+
+width: 20px;
+
+height: 20px;
+
+border-radius: 50%;
+
+margin-right: 12px;
+
+border: 2px solid #3b82f6;
+
+}
+
+
+.loading {
+
+position: absolute;
+
+top: 50%;
+
+left: 50%;
+
+transform: translate(-50%, -50%);
+
+background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+
+padding: 40px 60px;
+
+border-radius: 16px;
+
+box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+
+z-index: 2000;
+
+font-size: 20px;
+
+font-weight: bold;
+
+color: #60a5fa;
+
+border: 1px solid rgba(59, 130, 246, 0.3);
+
+animation: pulse 2s ease-in-out infinite;
+
+}
+
+
+@keyframes pulse {
+
+0%, 100% { opacity: 1; }
+
+50% { opacity: 0.7; }
+
+}
+
+
+.hidden {
+
+display: none;
+
+}
+
+
+.rankings-panel {
+
+position: absolute;
+
+top: 20px;
+
+right: 20px;
+
+background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+
+padding: 20px;
+
+border-radius: 12px;
+
+box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+
+z-index: 1000;
+
+max-width: 280px;
+
+max-height: 400px;
+
+overflow-y: auto;
+
+border: 1px solid rgba(59, 130, 246, 0.3);
+
+}
+
+
+.rankings-panel h3 {
+
+margin: 0 0 15px 0;
+
+font-size: 18px;
+
+color: #60a5fa;
+
+border-bottom: 2px solid #3b82f6;
+
+padding-bottom: 8px;
+
+}
+
+
+.ranking-item {
+
+display: flex;
+
+justify-content: space-between;
+
+align-items: center;
+
+padding: 10px;
+
+margin-bottom: 8px;
+
+background: rgba(59, 130, 246, 0.1);
+
+border-radius: 8px;
+
+cursor: pointer;
+
+transition: all 0.3s;
+
+border: 1px solid transparent;
+
+color: #e2e8f0;
+
+}
+
+
+.ranking-item:hover {
+
+background: rgba(59, 130, 246, 0.2);
+
+border-color: #3b82f6;
+
+transform: translateX(5px);
+
+}
+
+
+.ranking-number {
+
+font-weight: bold;
+
+color: #60a5fa;
+
+font-size: 16px;
+
+min-width: 30px;
+
+}
+
+
+.ranking-team {
+
+flex: 1;
+
+margin: 0 10px;
+
+font-size: 13px;
+
+white-space: nowrap;
+
+overflow: hidden;
+
+text-overflow: ellipsis;
+
+}
+
+
+.ranking-score {
+
+font-weight: bold;
+
+color: #ec4899;
+
+font-size: 14px;
+
+}
+
+
+.filter-section {
+
+margin-bottom: 18px;
+
+padding: 12px;
+
+background: rgba(59, 130, 246, 0.1);
+
+border-radius: 8px;
+
+border: 1px solid rgba(59, 130, 246, 0.2);
+
+}
+
+
+.filter-section h4 {
+
+margin: 0 0 10px 0;
+
+font-size: 14px;
+
+color: #60a5fa;
+
+font-weight: 600;
+
+}
+
+
+.checkbox-group {
+
+display: flex;
+
+align-items: center;
+
+margin-bottom: 8px;
+
+}
+
+
+.checkbox-group input[type="checkbox"] {
+
+margin-right: 8px;
+
+width: 18px;
+
+height: 18px;
+
+cursor: pointer;
+
+}
+
+
+.checkbox-group label {
+
+margin: 0;
+
+cursor: pointer;
+
+color: #cbd5e1;
+
+font-size: 13px;
+
+}
+
+
+.rankings-panel::-webkit-scrollbar {
+
+width: 8px;
+
+}
+
+
+.rankings-panel::-webkit-scrollbar-track {
+
+background: rgba(15, 23, 42, 0.5);
+
+border-radius: 4px;
+
+}
+
+
+.rankings-panel::-webkit-scrollbar-thumb {
+
+background: #3b82f6;
+
+border-radius: 4px;
+
+}
+
+
+.rankings-panel::-webkit-scrollbar-thumb:hover {
+
+background: #60a5fa;
+
+}
+
+</style>
+
 </head>
+
 <body>
+
+
 
 <button class="toggle-panel" onclick="togglePanel()">☰</button>
 
-<div id="controlPanel" class="panel-base control-panel">
-  <h2>Qbrank.live</h2>
-  
-  <div class="control-group">
-    <label> Search Team</label>
-    <input type="text" id="teamSearch" placeholder="Type team name..." oninput="searchTeam()">
-  </div>
-  
-  <div class="filter-section">
-    <h4>Visual Settings</h4>
-    
-    <div class="checkbox-group" style="margin-bottom: 12px;">
-      <input type="checkbox" id="darkMode" checked onchange="toggleDarkMode()">
-      <label for="darkMode">Dark Mode</label>
-    </div>
-    
-    <div class="control-group">
-      <label>Color Scheme</label>
-      <select id="colorScheme" onchange="updateColors()">
-        <option value="random">Random Colors</option>
-        <option value="rank">Color by Rank</option>
-        <option value="score">Color by Score</option>
-      </select>
-    </div>
-    
-    <div class="control-group">
-      <label>Circle Size</label>
-      <select id="sizeMode" onchange="updateSizes()">
-        <option value="score">By Score</option>
-        <option value="uniform">Uniform</option>
-      </select>
-    </div>
-  </div>
-  
-  <div class="filter-section">
-    <h4>Rank Filter</h4>
-    <div class="checkbox-group">
-      <input type="checkbox" id="showTop100" checked onchange="filterByRank()">
-      <label for="showTop100">Show Top 100</label>
-    </div>
-    <div class="checkbox-group">
-      <input type="checkbox" id="showTop500" checked onchange="filterByRank()">
-      <label for="showTop500">Show 101-500</label>
-    </div>
-    <div class="checkbox-group">
-      <input type="checkbox" id="showRest" checked onchange="filterByRank()">
-      <label for="showRest">Show 500+</label>
-    </div>
-  </div>
-  
-  <div class="stats-summary" id="statsSummary">
-    <strong>Loading data...</strong>
-  </div>
+
+
+<div id="controlPanel" class="control-panel">
+
+<h2>Qbrank.live</h2>
+
+
+<div class="control-group">
+
+<label> Search Team</label>
+
+<input type="text" id="teamSearch" placeholder="Type team name..." oninput="searchTeam()">
+
 </div>
 
-<div id="accoladesPanel" class="panel-base accolades-panel">
-    <h3>Circuit Ranks & Accolades</h3>
 
-    <div class="filter-section">
-        <h4>High School Circuit Ranks</h4>
-        <div class="rank-table-container">
-            <table class="rank-table" id="hsRankTable"></table>
-        </div>
-    </div>
-    
-    <div class="filter-section">
-        <h4>Middle School Circuit Ranks</h4>
-        <div class="rank-table-container">
-            <table class="rank-table" id="msRankTable"></table>
-        </div>
-    </div>
+<div class="filter-section">
 
-    <div class="filter-section">
-        <h4>Accolades</h4>
-        <div id="accoladesContent"></div>
-    </div>
+<h4>Visual Settings</h4>
+
+
+<div class="checkbox-group" style="margin-bottom: 12px;">
+
+<input type="checkbox" id="darkMode" checked onchange="toggleDarkMode()">
+
+<label for="darkMode">Dark Mode</label>
+
 </div>
 
-<div class="panel-base rankings-panel" id="rankingsPanel">
-  <h3>Top 10 Teams</h3>
-  <div id="topRankings"></div>
+
+<div class="control-group">
+
+<label>Color Scheme</label>
+
+<select id="colorScheme" onchange="updateColors()">
+
+<option value="random">Random Colors</option>
+
+<option value="rank">Color by Rank</option>
+
+<option value="score">Color by Score</option>
+
+</select>
+
 </div>
 
-<div class="panel-base legend">
-  <h3>Legend</h3>
-  <div class="legend-item">
-    <div class="legend-circle" style="width: 30px; height: 30px; background: #3b82f6;"></div>
-    <span>Higher Score</span>
-  </div>
-  <div class="legend-item">
-    <div class="legend-circle" style="width: 15px; height: 15px; background: #3b82f6;"></div>
-    <span>Lower Score</span>
-  </div>
+
+<div class="control-group">
+
+<label>Circle Size</label>
+
+<select id="sizeMode" onchange="updateSizes()">
+
+<option value="score">By Score</option>
+
+<option value="uniform">Uniform</option>
+
+</select>
+
 </div>
+
+</div>
+
+
+<div class="filter-section">
+
+<h4>Rank Filter</h4>
+
+<div class="checkbox-group">
+
+<input type="checkbox" id="showTop100" checked onchange="filterByRank()">
+
+<label for="showTop100">Show Top 100</label>
+
+</div>
+
+<div class="checkbox-group">
+
+<input type="checkbox" id="showTop500" checked onchange="filterByRank()">
+
+<label for="showTop500">Show 101-500</label>
+
+</div>
+
+<div class="checkbox-group">
+
+<input type="checkbox" id="showRest" checked onchange="filterByRank()">
+
+<label for="showRest">Show 500+</label>
+
+</div>
+
+</div>
+
+
+<div class="stats-summary" id="statsSummary">
+
+<strong>Loading data...</strong>
+
+</div>
+
+</div>
+
+
+
+<div class="rankings-panel" id="rankingsPanel">
+
+<h3>Top 10 Teams</h3>
+
+<div id="topRankings"></div>
+
+</div>
+
+
+
+<div class="legend">
+
+<h3>Legend</h3>
+
+<div class="legend-item">
+
+<div class="legend-circle" style="width: 30px; height: 30px; background: #3b82f6;"></div>
+
+<span>Higher Score</span>
+
+</div>
+
+<div class="legend-item">
+
+<div class="legend-circle" style="width: 15px; height: 15px; background: #3b82f6;"></div>
+
+<span>Lower Score</span>
+
+</div>
+
+</div>
+
+
 
 <div id="loading" class="loading">Loading Quizbowl Data...</div>
 
+
+
 <div id="map"></div>
 
+
+
 <script>
+
 const SHEET_ID = "1ZiV-l0X4Hlvice0GX7CJZ5YGlXodMcdCNRGVanVzlaA";
-const LOCATION_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Location%20Data`;
-const OVERALL_SHEET  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Overall`;
 
-// HS and MS Ranks Data
-const hsRanks = [
-  { rank: 1, circuit: 'Illinois', score: 22.67 }, { rank: 2, circuit: 'Texas', score: 21.88 }, 
-  { rank: 3, circuit: 'Massachusetts', score: 21.23 }, { rank: 4, circuit: 'California', score: 20.20 }, 
-  { rank: 5, circuit: 'Virginia', score: 18.79 }, { rank: 6, circuit: 'Georgia', score: 18.76 }, 
-  { rank: 7, circuit: 'Missouri', score: 17.05 }, { rank: 8, circuit: 'Maryland', score: 16.61 }, 
-  { rank: 9, circuit: 'New York', score: 16.41 }, { rank: 10, circuit: 'Indiana', score: 16.32 }, 
-  { rank: 11, circuit: 'Ohio', score: 16.30 }, { rank: 12, circuit: 'Minnesota', score: 16.25 }, 
-  { rank: 13, circuit: 'North Carolina', score: 16.20 }, { rank: 14, circuit: 'New Jersey', score: 16.08 }, 
-  { rank: 15, circuit: 'Alabama', score: 15.68 }, { rank: 16, circuit: 'Florida', score: 15.52 }, 
-  { rank: 17, circuit: 'Louisiana', score: 15.48 }, { rank: 18, circuit: 'Michigan', score: 15.37 }, 
-  { rank: 19, circuit: 'Pennsylvania', score: 15.15 }, { rank: 20, circuit: 'Oklahoma', score: 14.24 }, 
-  { rank: 21, circuit: 'Tennessee', score: 14.23 }, { rank: 22, circuit: 'Kentucky', score: 13.46 }, 
-  { rank: 23, circuit: 'Washington', score: 13.28 }, { rank: 24, circuit: 'Connecticut', score: 12.86 }, 
-  { rank: 25, circuit: 'Nebraska', score: 12.68 }, { rank: 26, circuit: 'South Carolina', score: 12.32 }, 
-  { rank: 27, circuit: 'Delaware', score: 12.22 }, { rank: 28, circuit: 'Colorado', score: 11.90 }, 
-  { rank: 29, circuit: 'South Korea', score: 11.82 }, { rank: 30, circuit: 'New Hampshire', score: 11.18 }, 
-  { rank: 31, circuit: 'Idaho', score: 11.10 }, { rank: 32, circuit: 'Arkansas', score: 10.92 }, 
-  { rank: 33, circuit: 'District of Columbia', score: 10.90 }, { rank: 34, circuit: 'Maine', score: 10.71 }, 
-  { rank: 35, circuit: 'West Virginia', score: 10.60 }, { rank: 36, circuit: 'Mississippi', score: 10.32 }, 
-  { rank: 37, circuit: 'Ontario (Canada)', score: 10.28 }, { rank: 38, circuit: 'New Mexico', score: 10.05 }, 
-  { rank: 39, circuit: 'Wisconsin', score: 8.22 }, { rank: 40, circuit: 'Costa Rica', score: 8.09 }, 
-  { rank: 41, circuit: 'Alberta (Canada)', score: 6.96 }
-];
+const LOCATION_SHEET = https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Location%20Data;
 
-const msRanks = [
-  { rank: 1, circuit: 'Texas', score: 21.59 }, { rank: 2, circuit: 'Georgia', score: 15.39 }, 
-  { rank: 3, circuit: 'California', score: 12.34 }, { rank: 4, circuit: 'Virginia', score: 10.94 }, 
-  { rank: 5, circuit: 'Maryland', score: 10.02 }, { rank: 6, circuit: 'Republic of Korea', score: 9.57 }, 
-  { rank: 7, circuit: 'New Jersey', score: 9.42 }, { rank: 8, circuit: 'New York', score: 9.17 }, 
-  { rank: 9, circuit: 'Kentucky', score: 8.34 }, { rank: 10, circuit: 'Connecticut', score: 8.08 }, 
-  { rank: 11, circuit: 'Indiana', score: 7.84 }, { rank: 12, circuit: 'Illinois', score: 7.81 }, 
-  { rank: 13, circuit: 'Ohio', score: 7.76 }, { rank: 14, circuit: 'Nevada', score: 7.73 }, 
-  { rank: 15, circuit: 'Florida', score: 7.02 }, { rank: 16, circuit: 'North Carolina', score: 6.63 }, 
-  { rank: 17, circuit: 'Washington', score: 6.08 }, { rank: 18, circuit: 'Louisiana', score: 5.77 }, 
-  { rank: 19, circuit: 'District of Columbia', score: 5.65 }, { rank: 20, circuit: 'Wisconsin', score: 5.02 }, 
-  { rank: 21, circuit: 'Tennessee', score: 4.22 }, { rank: 22, circuit: 'Oklahoma', score: 3.76 }, 
-  { rank: 23, circuit: 'Pennsylvania', score: 3.34 }, { rank: 24, circuit: 'Massachusetts', score: 3.30 }
-];
+const OVERALL_SHEET = https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Overall;
 
-const accolades = [
-    { title: 'Best Team', detail: 'Lexington A', value: '(99.78, #1)' },
-    { title: 'Best Team on NAQT', detail: 'Northview A', value: '(92.25, #3)' },
-    { title: 'Best Team on mACF', detail: 'Adlai Stevenson A', value: '(92.94, #2)' },
-    { title: 'Best MS Team', detail: 'Riverwatch Middle A', value: '(67.77, #155)' },
-    { title: 'Best MS Team on NAQT', detail: 'Heritage Middle A', value: '(66.83, #181)' },
-    { title: 'Best MS Team on mACF', detail: 'Smith Middle A', value: '(62.92, #273)' },
-    { title: 'Best Tournament Director', detail: 'Scott Kim', value: '(North by North Gwinnett IX, 56 teams)' },
-    { title: 'Best HS Circuit', detail: 'Illinois', value: 'Strength 22.67' },
-    { title: 'Best MS Circuit', detail: 'Texas', value: 'Strength 21.59' },
-    { title: 'Best HS Rivalry', detail: 'University School of Nashville A vs White Station A', value: '' },
-    { title: 'Best MS Rivalry', detail: 'Hopkins A vs Redwood A', value: '' }
-];
+
 
 let map;
+
 let currentTileLayer;
+
 let allTeams = [];
+
 let circles = [];
 
+
+
 window.addEventListener('load', function() {
-  map = L.map('map').setView([39, -95], 4);
-  currentTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 18,
-    attribution: '© OpenStreetMap contributors, © CARTO'
-  }).addTo(map);
-  
-  // Set up panels and initial UI data
-  document.getElementById('hsRankTable').innerHTML = generateRankTable(hsRanks);
-  document.getElementById('msRankTable').innerHTML = generateRankTable(msRanks);
-  document.getElementById('accoladesContent').innerHTML = generateAccoladesHTML(accolades);
-  
-  loadData();
+
+map = L.map('map').setView([39, -95], 4);
+
+currentTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+
+maxZoom: 18,
+
+attribution: '© OpenStreetMap contributors, © CARTO'
+
+}).addTo(map);
+
+
+loadData();
+
 });
 
-function generateRankTable(ranks) {
-    let html = '<thead><tr><th class="rank-num">#</th><th>Circuit</th><th>Score</th></tr></thead><tbody>';
-    ranks.forEach(r => {
-        html += `<tr><td class="rank-num">${r.rank}</td><td>${r.circuit}</td><td>${r.score.toFixed(2)}</td></tr>`;
-    });
-    html += '</tbody>';
-    return html;
-}
-
-function generateAccoladesHTML(accolades) {
-    return accolades.map(a => `
-        <div class="accolade-item">
-            <strong>${a.title}</strong>
-            <span class="accolade-detail">${a.detail} <span class="value">${a.value}</span></span>
-        </div>
-    `).join('');
-}
 
 
 function createTileLayer(isDark) {
-  if (currentTileLayer) {
-    map.removeLayer(currentTileLayer);
-  }
-  
-  if (isDark) {
-    currentTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 18,
-      attribution: '© OpenStreetMap contributors, © CARTO'
-    }).addTo(map);
-  } else {
-    currentTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-  }
+
+if (currentTileLayer) {
+
+map.removeLayer(currentTileLayer);
+
 }
+
+
+if (isDark) {
+
+currentTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+
+maxZoom: 18,
+
+attribution: '© OpenStreetMap contributors, © CARTO'
+
+}).addTo(map);
+
+} else {
+
+currentTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+maxZoom: 18,
+
+attribution: '© OpenStreetMap contributors'
+
+}).addTo(map);
+
+}
+
+}
+
+
 
 function loadCSV(url) {
-  return new Promise((resolve) => {
-    Papa.parse(url, {
-      download: true,
-      header: true,
-      complete: (results) => resolve(results.data)
-    });
-  });
+
+return new Promise((resolve) => {
+
+Papa.parse(url, {
+
+download: true,
+
+header: true,
+
+complete: (results) => resolve(results.data)
+
+});
+
+});
+
 }
+
+
 
 function randomColor() {
-  const colors = [
-    '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', 
-    '#06b6d4', '#6366f1', '#f43f5e', '#14b8a6', '#a855f7'
-  ];
-  return colors[Math.floor(Math.random() * colors.length)];
+
+const colors = [
+
+'#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981',
+
+'#06b6d4', '#6366f1', '#f43f5e', '#14b8a6', '#a855f7'
+
+];
+
+return colors[Math.floor(Math.random() * colors.length)];
+
 }
+
+
 
 function getColorByRank(rank, maxRank) {
-  if (rank <= 10) return '#22c55e';
-  if (rank <= 50) return '#3b82f6';
-  if (rank <= 100) return '#8b5cf6';
-  if (rank <= 500) return '#f59e0b';
-  return '#ef4444';
+
+if (rank <= 10) return '#22c55e';
+
+if (rank <= 50) return '#3b82f6';
+
+if (rank <= 100) return '#8b5cf6';
+
+if (rank <= 500) return '#f59e0b';
+
+return '#ef4444';
+
 }
+
+
 
 function getColorByScore(score, maxScore) {
-  const ratio = score / maxScore;
-  if (ratio > 0.8) return '#22c55e';
-  if (ratio > 0.6) return '#3b82f6';
-  if (ratio > 0.4) return '#8b5cf6';
-  if (ratio > 0.2) return '#f59e0b';
-  return '#ef4444';
+
+const ratio = score / maxScore;
+
+if (ratio > 0.8) return '#22c55e';
+
+if (ratio > 0.6) return '#3b82f6';
+
+if (ratio > 0.4) return '#8b5cf6';
+
+if (ratio > 0.2) return '#f59e0b';
+
+return '#ef4444';
+
 }
+
+
 
 function togglePanel() {
-  const panel = document.getElementById('controlPanel');
-  panel.classList.toggle('hidden');
+
+const panel = document.getElementById('controlPanel');
+
+panel.classList.toggle('hidden');
+
 }
+
+
 
 function toggleDarkMode() {
-  const isDark = document.getElementById('darkMode').checked;
-  document.body.style.background = isDark ? '#0f172a' : '#f8fafc';
-  
-  const panels = document.querySelectorAll('.panel-base');
-  panels.forEach(panel => {
-    if (isDark) {
-      panel.style.background = 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)';
-      panel.style.borderColor = 'rgba(59, 130, 246, 0.3)';
-      panel.style.color = '#e2e8f0';
-    } else {
-      panel.style.background = 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)';
-      panel.style.borderColor = 'rgba(59, 130, 246, 0.2)';
-      panel.style.color = '#1e293b';
-    }
-  });
-  
-  const headings = document.querySelectorAll('.control-panel h2, .rankings-panel h3, .legend h3, .filter-section h4, .accolades-panel h3, .accolade-item strong');
-  headings.forEach(h => {
-    h.style.color = isDark ? '#60a5fa' : '#2563eb';
-  });
-  
-  const labels = document.querySelectorAll('.control-group label, .popup-label, .checkbox-group label, .rank-table th');
-  labels.forEach(l => {
-    l.style.color = isDark ? '#94a3b8' : '#64748b';
-  });
-  
-  const darkTextElements = document.querySelectorAll('.accolade-detail, .rank-table td, .rank-table .rank-num');
-  darkTextElements.forEach(el => {
-    el.style.color = isDark ? '#e2e8f0' : '#1e293b';
-  });
 
-  // Specifically handle select/input colors for dark/light mode
-  const inputs = document.querySelectorAll('.control-group select, .control-group input');
-  inputs.forEach(input => {
-    if (isDark) {
-      input.style.background = 'rgba(15, 23, 42, 0.8)';
-      input.style.color = '#e2e8f0';
-      input.style.borderColor = 'rgba(59, 130, 246, 0.3)';
-    } else {
-      input.style.background = 'white';
-      input.style.color = '#1e293b';
-      input.style.borderColor = 'rgba(59, 130, 246, 0.3)';
-    }
-  });
-  
-  // Create dynamic style block for Leaflet elements (Pure Black for light mode text)
-  let style = document.getElementById('leaflet-dynamic-styles');
-  if (!style) {
-      style = document.createElement('style');
-      style.id = 'leaflet-dynamic-styles';
-      document.head.appendChild(style);
-  }
-  
-  if (isDark) {
-    style.textContent = 
-      `.leaflet-tooltip {
-        background-color: rgba(15, 23, 42, 0.95) !important;
-        color: white !important;
-        border-color: #3b82f6 !important;
-      }
-      .leaflet-popup-content-wrapper {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
-        border-color: rgba(59, 130, 246, 0.3) !important;
-      }
-      .leaflet-popup-tip {
-        background: #1e293b !important;
-      }
-      .popup-value {
-        color: #e2e8f0 !important;
-      }
-      .popup-title {
-        color: #60a5fa !important;
-      }
-      .leaflet-popup-content {
-        color: #e2e8f0 !important;
-      }
-    `;
-  } else {
-    style.textContent = 
-      `.leaflet-tooltip {
-        background-color: rgba(255, 255, 255, 0.95) !important;
-        color: #1e293b !important;
-        border-color: #3b82f6 !important;
-      }
-      .leaflet-popup-content-wrapper {
-        background: white !important;
-        border-color: rgba(59, 130, 246, 0.2) !important;
-      }
-      .leaflet-popup-tip {
-        background: white !important;
-      }
-      .popup-title {
-        color: #2563eb !important;
-      }
-      .popup-value {
-        color: #000000 !important; /* Pure black text for accolades/details in light mode */
-      }
-      .leaflet-popup-content {
-        color: #1e293b !important;
-      }
-    `;
-  }
-  
-  createTileLayer(isDark);
+const isDark = document.getElementById('darkMode').checked;
+
+document.body.style.background = isDark ? '#0f172a' : '#f8fafc';
+
+
+const panels = document.querySelectorAll('.control-panel, .rankings-panel, .legend');
+
+panels.forEach(panel => {
+
+if (isDark) {
+
+panel.style.background = 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)';
+
+panel.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+
+panel.style.color = '#e2e8f0';
+
+} else {
+
+panel.style.background = 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)';
+
+panel.style.borderColor = 'rgba(59, 130, 246, 0.2)';
+
+panel.style.color = '#1e293b';
+
 }
+
+});
+
+
+const headings = document.querySelectorAll('.control-panel h2, .rankings-panel h3, .legend h3, .filter-section h4');
+
+headings.forEach(h => {
+
+h.style.color = isDark ? '#60a5fa' : '#2563eb';
+
+});
+
+
+const labels = document.querySelectorAll('.control-group label, .popup-label, .checkbox-group label');
+
+labels.forEach(l => {
+
+l.style.color = isDark ? '#94a3b8' : '#64748b';
+
+});
+
+
+const inputs = document.querySelectorAll('.control-group select, .control-group input');
+
+inputs.forEach(input => {
+
+if (isDark) {
+
+input.style.background = 'rgba(15, 23, 42, 0.8)';
+
+input.style.color = '#e2e8f0';
+
+input.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+
+} else {
+
+input.style.background = 'white';
+
+input.style.color = '#1e293b';
+
+input.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+
+}
+
+});
+
+
+const style = document.createElement('style');
+
+if (isDark) {
+
+style.textContent =
+
+.leaflet-tooltip {
+
+background-color: rgba(15, 23, 42, 0.95) !important;
+
+color: white !important;
+
+border-color: #3b82f6 !important;
+
+}
+
+.leaflet-popup-content-wrapper {
+
+background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+
+}
+
+.leaflet-popup-tip {
+
+background: #1e293b !important;
+
+}
+
+;
+
+} else {
+
+style.textContent =
+
+.leaflet-tooltip {
+
+background-color: rgba(255, 255, 255, 0.95) !important;
+
+color: #1e293b !important;
+
+border-color: #3b82f6 !important;
+
+}
+
+.leaflet-popup-content-wrapper {
+
+background: white !important;
+
+}
+
+.leaflet-popup-tip {
+
+background: white !important;
+
+}
+
+.popup-title {
+
+color: #2563eb !important;
+
+}
+
+.popup-value {
+
+color: #1e293b !important;
+
+}
+
+;
+
+}
+
+document.head.appendChild(style);
+
+
+createTileLayer(isDark);
+
+}
+
+
 
 function searchTeam() {
-  const searchTerm = document.getElementById('teamSearch').value.toLowerCase();
-  
-  if (!searchTerm) {
-    circles.forEach(c => c.circle.setStyle({ opacity: 1, fillOpacity: 0.5 }));
-    return;
-  }
-  
-  let found = false;
-  circles.forEach(c => {
-    if (c.name.toLowerCase().includes(searchTerm)) {
-      c.circle.setStyle({ opacity: 1, fillOpacity: 0.8 });
-      if (!found) {
-        map.setView(c.circle.getLatLng(), 10);
-        c.circle.openPopup();
-        found = true;
-      }
-    } else {
-      c.circle.setStyle({ opacity: 0.15, fillOpacity: 0.05 });
-    }
-  });
+
+const searchTerm = document.getElementById('teamSearch').value.toLowerCase();
+
+
+if (!searchTerm) {
+
+circles.forEach(c => c.circle.setStyle({ opacity: 1, fillOpacity: 0.5 }));
+
+return;
+
 }
+
+
+let found = false;
+
+circles.forEach(c => {
+
+if (c.name.toLowerCase().includes(searchTerm)) {
+
+c.circle.setStyle({ opacity: 1, fillOpacity: 0.8 });
+
+if (!found) {
+
+map.setView(c.circle.getLatLng(), 10);
+
+c.circle.openPopup();
+
+found = true;
+
+}
+
+} else {
+
+c.circle.setStyle({ opacity: 0.15, fillOpacity: 0.05 });
+
+}
+
+});
+
+}
+
+
 
 function filterByRank() {
-  const showTop100 = document.getElementById('showTop100').checked;
-  const showTop500 = document.getElementById('showTop500').checked;
-  const showRest = document.getElementById('showRest').checked;
-  
-  circles.forEach(c => {
-    const rank = parseInt(c.rank);
-    let show = false;
-    
-    if (!isNaN(rank)) {
-      if (rank <= 100 && showTop100) show = true;
-      else if (rank > 100 && rank <= 500 && showTop500) show = true;
-      else if (rank > 500 && showRest) show = true;
-    }
-    
-    if (show) {
-      if (!map.hasLayer(c.circle)) {
-        c.circle.addTo(map);
-      }
-      c.circle.setStyle({ opacity: 1, fillOpacity: 0.5 });
-    } else {
-      if (map.hasLayer(c.circle)) {
-        map.removeLayer(c.circle);
-      }
-    }
-  });
+
+const showTop100 = document.getElementById('showTop100').checked;
+
+const showTop500 = document.getElementById('showTop500').checked;
+
+const showRest = document.getElementById('showRest').checked;
+
+
+let visibleCount = 0;
+
+let debugInfo = '';
+
+
+circles.forEach((c, index) => {
+
+const rank = parseInt(c.rank);
+
+
+if (index < 3) {
+
+debugInfo += ${c.name}: rank=${rank}<br>;
+
 }
+
+
+let show = false;
+
+
+if (!isNaN(rank)) {
+
+if (rank <= 100 && showTop100) show = true;
+
+else if (rank > 100 && rank <= 500 && showTop500) show = true;
+
+else if (rank > 500 && showRest) show = true;
+
+}
+
+
+if (show) {
+
+if (!map.hasLayer(c.circle)) {
+
+c.circle.addTo(map);
+
+}
+
+c.circle.setStyle({ opacity: 1, fillOpacity: 0.5 });
+
+visibleCount++;
+
+} else {
+
+if (map.hasLayer(c.circle)) {
+
+map.removeLayer(c.circle);
+
+}
+
+}
+
+});
+
+
+debugInfo += <strong>${visibleCount} teams visible</strong>;
+
+document.getElementById('filterDebug').innerHTML = debugInfo;
+
+}
+
+
 
 function updateColors() {
-  const scheme = document.getElementById('colorScheme').value;
-  const maxRank = Math.max(...allTeams.map(t => parseInt(t.rank) || 0));
-  const maxScore = Math.max(...allTeams.map(t => parseFloat(t.score) || 0));
-  
-  circles.forEach(c => {
-    let color;
-    if (scheme === 'random') {
-      color = randomColor();
-    } else if (scheme === 'rank') {
-      color = getColorByRank(parseInt(c.rank), maxRank);
-    } else if (scheme === 'score') {
-      color = getColorByScore(parseFloat(c.score), maxScore);
-    }
-    
-    c.circle.setStyle({ color: color, fillColor: color });
-  });
+
+const scheme = document.getElementById('colorScheme').value;
+
+const maxRank = Math.max(...allTeams.map(t => parseInt(t.rank) || 0));
+
+const maxScore = Math.max(...allTeams.map(t => parseFloat(t.score) || 0));
+
+
+circles.forEach(c => {
+
+let color;
+
+if (scheme === 'random') {
+
+color = randomColor();
+
+} else if (scheme === 'rank') {
+
+color = getColorByRank(parseInt(c.rank), maxRank);
+
+} else if (scheme === 'score') {
+
+color = getColorByScore(parseFloat(c.score), maxScore);
+
 }
+
+
+c.circle.setStyle({ color: color, fillColor: color });
+
+});
+
+}
+
+
 
 function updateSizes() {
-  const mode = document.getElementById('sizeMode').value;
-  const maxScore = Math.max(...allTeams.map(t => parseFloat(t.score) || 0));
-  
-  circles.forEach(c => {
-    let radius;
-    if (mode === 'uniform') {
-      radius = 10000;
-    } else {
-      radius = 3000 + (parseFloat(c.score) / maxScore) * 50000;
-    }
-    c.circle.setRadius(radius);
-  });
+
+const mode = document.getElementById('sizeMode').value;
+
+const maxScore = Math.max(...allTeams.map(t => parseFloat(t.score) || 0));
+
+
+circles.forEach(c => {
+
+let radius;
+
+if (mode === 'uniform') {
+
+radius = 10000;
+
+} else {
+
+radius = 3000 + (parseFloat(c.score) / maxScore) * 50000;
+
 }
+
+c.circle.setRadius(radius);
+
+});
+
+}
+
+
 
 function zoomToTeam(lat, lon, teamName) {
-  map.setView([lat, lon], 12);
-  setTimeout(() => {
-    circles.forEach(c => {
-      if (c.name === teamName) {
-        c.circle.openPopup();
-      }
-    });
-  }, 300);
+
+map.setView([lat, lon], 12);
+
+setTimeout(() => {
+
+circles.forEach(c => {
+
+if (c.name === teamName) {
+
+c.circle.openPopup();
+
 }
+
+});
+
+}, 300);
+
+}
+
+
 
 async function loadData() {
-  try {
-    console.log('Starting to load data...');
-    const locData   = await loadCSV(LOCATION_SHEET);
-    const scoreData = await loadCSV(OVERALL_SHEET);
-    
-    console.log('Location data rows:', locData.length);
-    console.log('Score data rows:', scoreData.length);
 
-  const scoreMap = {};
-  const possibleNameColumns = ["Team", "Team Name", "School", "School Name", "Name"];
-  let teamColumnName = null;
-  
-  if (scoreData.length > 0) {
-    for (let colName of possibleNameColumns) {
-      if (scoreData[0].hasOwnProperty(colName)) {
-        teamColumnName = colName;
-        break;
-      }
-    }
-  }
-  
-  console.log(`Using column name: "${teamColumnName}"`);
-  
-  function normalize(str) {
-    return str.trim()
-      .toLowerCase()
-      .replace(/\s+/g, ' ')  
-      .replace(/[^\w\s]/g, '');
-  }
-  
-  const normalizedScoreMap = {};
-  scoreData.forEach(row => {
-    const teamName = row[teamColumnName]?.trim();
-    if (teamName) {
-      scoreMap[teamName] = row;
-      normalizedScoreMap[normalize(teamName)] = row;
-    }
-  });
+try {
 
-  let maxScore = 0;
-  scoreData.forEach(row => {
-    const score = parseFloat(row.Score);
-    if (!isNaN(score)) maxScore = Math.max(maxScore, score);
-  });
+console.log('Starting to load data...');
 
-  let missingTeams = [];
-  let fuzzyMatched = 0;
-  
-  locData.forEach(team => {
-    const name = team["Team Name"]?.trim();
-    if (!name) return; 
-    
-    let scoreInfo = scoreMap[name];
-    
-    if (!scoreInfo) {
-      scoreInfo = normalizedScoreMap[normalize(name)];
-      if (scoreInfo) {
-        fuzzyMatched++;
-      }
-    }
-    
-    if (!scoreInfo) {
-      missingTeams.push(name);
-      return;
-    }
+const locData = await loadCSV(LOCATION_SHEET);
 
-    const lat = parseFloat(team["Latitude (N∘)"]);
-    const lon = parseFloat(team["Longitude (W∘ or E∘)"]);
-    const score = parseFloat(scoreInfo.Score);
-    const rank = scoreInfo.Rank;
+const scoreData = await loadCSV(OVERALL_SHEET);
 
-    if (isNaN(lat) || isNaN(lon) || isNaN(score)) return;
 
-    allTeams.push({ name, lat, lon, score, rank, location: team["State/Region Context"] });
+console.log('Location data rows:', locData.length);
 
-    const radius = 3000 + (score / maxScore) * 50000;
-    const color = randomColor();
+console.log('Score data rows:', scoreData.length);
 
-    const popup = `
-      <div class="popup-title">${name}</div>
-      <div class="popup-stats">
-        <span class="popup-label">Score:</span>
-        <span class="score-badge">${score.toFixed(1)}</span>
-        <span class="popup-label">Rank:</span>
-        <span class="rank-badge">#${rank}</span>
-        <span class="popup-label">Location:</span>
-        <span class="popup-value">${team["State/Region Context"]}</span>
-        <span class="popup-label">Coordinates:</span>
-        <span class="popup-value">${lat.toFixed(3)}, ${lon.toFixed(3)}</span>
-      </div>
-    `;
 
-    const circle = L.circle([lat, lon], {
-      radius: radius,
-      color: color,
-      fillColor: color,
-      fillOpacity: 0.5,
-      weight: 2
-    }).addTo(map).bindPopup(popup);
-    
-    circle.bindTooltip(name, {
-      permanent: false,
-      direction: 'top'
-    });
-    
-    circles.push({ circle, name, score, rank, lat, lon });
-  });
-  
-  // Sort and display top teams
-  const topTeams = [...allTeams]
-    .sort((a, b) => {
-      const rankA = parseInt(a.rank);
-      const rankB = parseInt(b.rank);
-      return rankA - rankB;
-    })
-    .slice(0, 13);
-  const topRankingsHTML = topTeams.map(team => 
-    `<div class="ranking-item" onclick="zoomToTeam(${team.lat}, ${team.lon}, '${team.name.replace(/'/g, "\\'")}')">
-      <span class="ranking-number">#${team.rank}</span>
-      <span class="ranking-team">${team.name}</span>
-      <span class="ranking-score">${team.score.toFixed(1)}</span>
-    </div>`
-  ).join('');
-  document.getElementById('topRankings').innerHTML = topRankingsHTML;
-  
-  // Update stats summary
-  const avgScore = allTeams.reduce((a, b) => a + b.score, 0) / allTeams.length;
-  
-  let statsHTML = 
-    `<strong>${allTeams.length}</strong> teams loaded<br>
-    Top Score: <strong>${maxScore.toFixed(1)}</strong><br>
-    Avg Score: <strong>${avgScore.toFixed(1)}</strong><br>
-    Median Rank: <strong>#${Math.floor(allTeams.length / 2)}</strong>`;
-  
-  if (fuzzyMatched > 0) {
-    statsHTML += `<br>✨ <strong>${fuzzyMatched}</strong> fuzzy matched`;
-  }
-  
-  if (missingTeams.length > 0) {
-    statsHTML += `<br><br> <strong>${missingTeams.length} teams missing</strong><br>`;
-    statsHTML += `<small>First few: ${missingTeams.slice(0, 3).join(', ')}</small>`;
-    console.log(`${missingTeams.length} teams in Location Data not found in Overall sheet:`);
-    console.log(missingTeams);
-  }
-  
-  document.getElementById('statsSummary').innerHTML = statsHTML;
-  
-  document.getElementById('loading').classList.add('hidden');
-  
-  console.log('Data loading complete!');
-  } catch (error) {
-    console.error('Error loading data:', error);
-    document.getElementById('statsSummary').innerHTML = '<strong>Error loading data!</strong><br>Check console for details.';
-    document.getElementById('loading').classList.add('hidden');
-  }
+
+const scoreMap = {};
+
+const possibleNameColumns = ["Team", "Team Name", "School", "School Name", "Name"];
+
+let teamColumnName = null;
+
+
+if (scoreData.length > 0) {
+
+for (let colName of possibleNameColumns) {
+
+if (scoreData[0].hasOwnProperty(colName)) {
+
+teamColumnName = colName;
+
+break;
+
 }
 
+}
+
+}
+
+
+console.log(Using column name: "${teamColumnName}");
+
+
+function normalize(str) {
+
+return str.trim()
+
+.toLowerCase()
+
+.replace(/\s+/g, ' ')
+
+.replace(/[^\w\s]/g, '');
+
+}
+
+
+const normalizedScoreMap = {};
+
+scoreData.forEach(row => {
+
+const teamName = row[teamColumnName]?.trim();
+
+if (teamName) {
+
+scoreMap[teamName] = row;
+
+normalizedScoreMap[normalize(teamName)] = row;
+
+}
+
+});
+
+
+
+let maxScore = 0;
+
+scoreData.forEach(row => {
+
+const score = parseFloat(row.Score);
+
+if (!isNaN(score)) maxScore = Math.max(maxScore, score);
+
+});
+
+
+
+let missingTeams = [];
+
+let fuzzyMatched = 0;
+
+
+locData.forEach(team => {
+
+const name = team["Team Name"]?.trim();
+
+if (!name) return;
+
+
+let scoreInfo = scoreMap[name];
+
+
+if (!scoreInfo) {
+
+scoreInfo = normalizedScoreMap[normalize(name)];
+
+if (scoreInfo) {
+
+fuzzyMatched++;
+
+}
+
+}
+
+
+if (!scoreInfo) {
+
+missingTeams.push(name);
+
+return;
+
+}
+
+
+
+const lat = parseFloat(team["Latitude (N∘)"]);
+
+const lon = parseFloat(team["Longitude (W∘ or E∘)"]);
+
+const score = parseFloat(scoreInfo.Score);
+
+const rank = scoreInfo.Rank;
+
+
+
+if (isNaN(lat) || isNaN(lon) || isNaN(score)) return;
+
+
+
+allTeams.push({ name, lat, lon, score, rank, location: team["State/Region Context"] });
+
+
+
+const radius = 3000 + (score / maxScore) * 50000;
+
+const color = randomColor();
+
+
+
+const popup =
+
+<div class="popup-title">${name}</div>
+
+<div class="popup-stats">
+
+<span class="popup-label">Score:</span>
+
+<span class="score-badge">${score.toFixed(1)}</span>
+
+<span class="popup-label">Rank:</span>
+
+<span class="rank-badge">#${rank}</span>
+
+<span class="popup-label">Location:</span>
+
+<span class="popup-value">${team["State/Region Context"]}</span>
+
+<span class="popup-label">Coordinates:</span>
+
+<span class="popup-value">${lat.toFixed(3)}, ${lon.toFixed(3)}</span>
+
+</div>
+
+;
+
+
+
+const circle = L.circle([lat, lon], {
+
+radius: radius,
+
+color: color,
+
+fillColor: color,
+
+fillOpacity: 0.5,
+
+weight: 2
+
+}).addTo(map).bindPopup(popup);
+
+
+circle.bindTooltip(name, {
+
+permanent: false,
+
+direction: 'top'
+
+});
+
+
+circles.push({ circle, name, score, rank, lat, lon });
+
+});
+
+
+const topTeams = [...allTeams]
+
+.sort((a, b) => {
+
+const rankA = parseInt(a.rank);
+
+const rankB = parseInt(b.rank);
+
+return rankA - rankB;
+
+})
+
+.slice(0, 13);
+
+const topRankingsHTML = topTeams.map(team =>
+
+<div class="ranking-item" onclick="zoomToTeam(${team.lat}, ${team.lon}, '${team.name.replace(/'/g, "\\'")}')">
+
+<span class="ranking-number">#${team.rank}</span>
+
+<span class="ranking-team">${team.name}</span>
+
+<span class="ranking-score">${team.score.toFixed(1)}</span>
+
+</div>
+
+).join('');
+
+document.getElementById('topRankings').innerHTML = topRankingsHTML;
+
+
+const avgScore = allTeams.reduce((a, b) => a + b.score, 0) / allTeams.length;
+
+
+let statsHTML =
+
+<strong>${allTeams.length}</strong> teams loaded<br>
+
+Top Score: <strong>${maxScore.toFixed(1)}</strong><br>
+
+Avg Score: <strong>${avgScore.toFixed(1)}</strong><br>
+
+Median Rank: <strong>#${Math.floor(allTeams.length / 2)}</strong>
+
+;
+
+
+if (fuzzyMatched > 0) {
+
+statsHTML += <br>✨ <strong>${fuzzyMatched}</strong> fuzzy matched;
+
+}
+
+
+if (missingTeams.length > 0) {
+
+statsHTML += <br><br> <strong>${missingTeams.length} teams missing</strong><br>;
+
+statsHTML += <small>First few: ${missingTeams.slice(0, 3).join(', ')}</small>;
+
+console.log( ${missingTeams.length} teams in Location Data not found in Overall sheet:);
+
+console.log(missingTeams);
+
+}
+
+
+document.getElementById('statsSummary').innerHTML = statsHTML;
+
+
+document.getElementById('loading').classList.add('hidden');
+
+
+console.log('Data loading complete!');
+
+} catch (error) {
+
+console.error('Error loading data:', error);
+
+document.getElementById('statsSummary').innerHTML = '<strong>Error loading data!</strong><br>Check console for details.';
+
+document.getElementById('loading').classList.add('hidden');
+
+}
+
+}
+
+
+
 </script>
+
 </body>
+
 </html>
+
