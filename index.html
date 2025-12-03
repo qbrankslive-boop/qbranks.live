@@ -539,7 +539,9 @@ function getOverallURL() {
   // If both checked or both unchecked -> show combined (default)
   if ((hs && ms) || (!hs && !ms)) return OVERALL_SHEET_DEFAULT;
   if (hs && !ms) return OVERALL_SHEET_HS;
-  if (!ms && ms) return OVERALL_SHEET_MS;
+  
+  // FIX: This was the broken logic. Changed from (!ms && ms) to (!hs && ms)
+  if (!hs && ms) return OVERALL_SHEET_MS; 
 }
 
 /* ---------- reload data when grade toggles change ---------- */
@@ -740,7 +742,7 @@ function renderOverallRankings(teamsToShow) {
     const topRankingsHTML = sorted.map((team, index) => {
       const safeName = team.name.replace(/'/g, "\\'");
       
-      // *** CHANGE HERE: Always use the national rank (team.rank) for the ranking number display ***
+      // Use the national rank (team.rank) for the ranking number display
       const rankText = `#${team.rank}`; 
 
       const scoreText = team.score.toFixed(1);
@@ -757,7 +759,7 @@ function renderOverallRankings(teamsToShow) {
     
     document.getElementById('topRankings').innerHTML = topRankingsHTML;
 
-    // *** CHANGE HERE: Ensure the panel heading always says "Overall Team Rankings" ***
+    // Ensure the panel heading always says "Overall Team Rankings"
     const panelHeading = document.querySelector('#overallRankingsContent h3');
     panelHeading.textContent = 'Overall Team Rankings';
 }
@@ -966,12 +968,15 @@ function toggleDarkMode() {
 
   const rankingTeams = document.querySelectorAll('.ranking-item .ranking-team');
   rankingTeams.forEach(team => {
-      team.style.color = isDark ? '#e2e8f0' : '#1e293b';
+    // Only change team name color if not selected, selected color is always white
+    if (!team.parentElement.classList.contains('selected')) {
+        team.style.color = isDark ? '#e2e8f0' : '#1e293b';
+    }
   });
   
   const popupValues = document.querySelectorAll('.popup-value');
   popupValues.forEach(val => {
-      val.style.color = isDark ? '#e2e8f0' : '#1e293b';
+      val.style.color = isDark ? '#e2e8f0' : '#1e293b'; 
   });
   
   const circuitTableCells = document.querySelectorAll('.circuit-table');
@@ -1005,6 +1010,8 @@ function updateMapVisibility() {
     }
 
     // B. Grade Filter
+    // NOTE: This filter logic only applies when loading the combined (default) sheet. 
+    // When loading the MS-only or HS-only sheets, this filter ensures the display reflects the checklist state.
     if (passesFilter) {
         if (grade.toUpperCase().includes('HS') && !showHS) {
             passesFilter = false;
