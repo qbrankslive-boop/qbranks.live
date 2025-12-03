@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -287,7 +286,7 @@
     </div>
 
     <div class="control-group">
-      <label>Circle Size Mode</label>
+      <label>Circle Size Mode</slabel>
       <select id="sizeMode" onchange="updateSizes()">
         <option value="score">By Score</option>
         <option value="uniform">Uniform</option>
@@ -301,10 +300,19 @@
   </div>
 
   <div class="filter-section">
-    <h4>Rank Filter</h4>
+    <h4>Map Filters</h4>
+
+    <div class="control-group">
+      <label>Filter by State/Region</label>
+      <select id="stateFilter" onchange="handleStateFilter()">
+        <option value="">Show All States</option>
+        <!-- Options populated by JS -->
+      </select>
+    </div>
+
     <div class="control-group">
       <label>Show Top X teams (leave empty to show all)</label>
-      <input type="number" id="topX" placeholder="e.g. 100" min="1" oninput="filterByRank()" />
+      <input type="number" id="topX" placeholder="e.g. 100" min="1" oninput="updateMapVisibility()" />
     </div>
   </div>
 
@@ -460,13 +468,13 @@ const accoladesData = [
 /* ---------- Globals ---------- */
 let map;
 let currentTileLayer;
-let allTeams = [];     // { name, lat, lon, score, rank, location, rawScoreRow }
+let allTeams = [];     // { name, lat, lon, score, rank, location, rawScoreRow, stateCode, stateRank }
 let circles = [];      // { circle, name, score, rank, lat, lon }
 let markerLayerGroup = L.layerGroup();
 let radiusMultiplier = 1.0;
 // Global variable to hold missing teams list for UI rendering
 let teamsMissingLocationGlobal = []; 
-
+let uniqueStateCodes = new Set(); // New set to store unique state codes
 /* ---------- init ---------- */
 window.addEventListener('load', function() {
   map = L.map('map').setView([39, -95], 4);
@@ -521,16 +529,17 @@ function clearData() {
   markerLayerGroup.clearLayers();
   document.getElementById('topRankings').innerHTML = '';
   teamsMissingLocationGlobal = []; // Clear the global list
+  uniqueStateCodes.clear(); // Clear state codes
 }
 
 /* ---------- get proper overall sheet URL based on grade toggles ---------- */
 function getOverallURL() {
   const hs = document.getElementById('gradeHS').checked;
   const ms = document.getElementById('gradeMS').checked;
-  // If both checked -> show combined (default)
+  // If both checked or both unchecked -> show combined (default)
+  if ((hs && ms) || (!hs && !ms)) return OVERALL_SHEET_DEFAULT;
   if (hs && !ms) return OVERALL_SHEET_HS;
-  if (!hs && ms) return OVERALL_SHEET_MS;
-  return OVERALL_SHEET_DEFAULT;
+  if (!ms && ms) return OVERALL_SHEET_MS;
 }
 
 /* ---------- reload data when grade toggles change ---------- */
@@ -593,6 +602,7 @@ async function loadData() {
     }
     
     let teamsMissingLocation = []; 
+    let tempStateCodes = new Set(); // Temporary set for dropdown population
 
     for (const scoreRow of scoreData) {
         const name = String(scoreRow[teamColumnName] || '').trim();
@@ -622,7 +632,7 @@ async function loadData() {
 
         if (isNaN(lat) || isNaN(lon) || isNaN(scoreVal)) continue;
         
-        allTeams.push({
+        const team = {
             name,
             lat,
             lon,
@@ -631,11 +641,29 @@ async function loadData() {
             location: teamRow["State/Region Context"] || teamRow["State"] || teamRow["Location"] || '',
             rawScoreRow: scoreRow,
             bestSetCol,
-            bestTournCol 
-        });
+            bestTournCol,
+            stateCode: null, // New property to store extracted state code
+            circleRef: null // Reference to the created circle
+        };
+
+        // Extract state code from team name (e.g., "Chapel Hill (NC) A" -> "NC")
+        const nameMatch = team.name.match(/\(([A-Z]{2})\)\s*[A-Za-z]?$/);
+        if (nameMatch) {
+            team.stateCode = nameMatch[1];
+        } else if (team.location && team.location.length === 2 && team.location.toUpperCase() === team.location) {
+            // Fallback to location column if it's a 2-letter code in all caps
+            team.stateCode = team.location;
+        }
+        
+        if (team.stateCode) {
+            tempStateCodes.add(team.stateCode);
+        }
+
+        allTeams.push(team);
     }
 
     teamsMissingLocationGlobal = teamsMissingLocation;
+    uniqueStateCodes = tempStateCodes; // Save the unique list globally
 
     if (teamsMissingLocationGlobal.length > 0) {
         console.warn(`
@@ -645,6 +673,8 @@ async function loadData() {
         `);
         console.log(teamsMissingLocationGlobal); 
     }
+    
+    populateStateFilter(); // Populate the new dropdown
     calculateStateRanks();
 
     const maxScoreLocal = Math.max(...allTeams.map(t => t.score || 0), 0);
@@ -660,23 +690,13 @@ async function loadData() {
         weight: 2
       }).addTo(markerLayerGroup).bindPopup(popupHTML);
       circle.bindTooltip(t.name, { permanent: false, direction: 'top' });
-      circles.push({ circle, name: t.name, score: t.score, rank: t.rank, lat: t.lat, lon: t.lon, raw: t.rawScoreRow });
+      t.circleRef = circle; // Store reference on the team object
+      circles.push({ circle, name: t.name, score: t.score, rank: t.rank, lat: t.lat, lon: t.lon, raw: t.rawScoreRow, stateCode: t.stateCode });
     }
 
-    const sorted = [...allTeams].sort((a,b) => {
-      const ra = parseInt(a.rank) || 9999999;
-      const rb = parseInt(b.rank) || 9999999;
-      return ra - rb;
-    });
+    // Initial population of the rankings panel (before filtering)
+    renderOverallRankings(allTeams); 
     
-    const topRankingsHTML = sorted.map((team, index) => {
-      const safeName = team.name.replace(/'/g, "\\'");
-      const rnum = `#${team.rank}`; 
-      return `<div class="ranking-item" data-team-rank="${team.rank}" data-team-name="${safeName}" onclick="zoomToTeam(${team.lat}, ${team.lon}, '${safeName}')"><span class="ranking-number">${rnum}</span><span class="ranking-team">${team.name}</span><span class="ranking-score">${team.score.toFixed(1)}</span></div>`;
-    }).join('');
-    
-    document.getElementById('topRankings').innerHTML = topRankingsHTML;
-
     const avgScore = allTeams.reduce((a,b) => a + (b.score||0), 0) / Math.max(allTeams.length,1);
     let statsHTML = `
       <strong>${allTeams.length}</strong> teams loaded<br>
@@ -699,7 +719,7 @@ async function loadData() {
 
     document.getElementById('loading').classList.add('hidden');
 
-    filterByRank();
+    updateMapVisibility(); // Call the unified visibility function
 
     console.log('Data loading completed.');
   } catch (err) {
@@ -707,6 +727,59 @@ async function loadData() {
     document.getElementById('statsSummary').innerHTML = '<strong>Error loading data!</strong><br>Check console.';
     document.getElementById('loading').classList.add('hidden');
   }
+}
+
+function renderOverallRankings(teamsToShow) {
+    // Sort the filtered list by rank
+    const sorted = [...teamsToShow].sort((a,b) => {
+      const ra = parseInt(a.rank) || 9999999;
+      const rb = parseInt(b.rank) || 9999999;
+      return ra - rb;
+    });
+
+    const topRankingsHTML = sorted.map((team, index) => {
+      const safeName = team.name.replace(/'/g, "\\'");
+      
+      // *** CHANGE HERE: Always use the national rank (team.rank) for the ranking number display ***
+      const rankText = `#${team.rank}`; 
+
+      const scoreText = team.score.toFixed(1);
+
+      return `<div class="ranking-item" 
+                    data-team-rank="${team.rank}" 
+                    data-team-name="${safeName}" 
+                    onclick="zoomToTeam(${team.lat}, ${team.lon}, '${safeName}')">
+                <span class="ranking-number">${rankText}</span>
+                <span class="ranking-team">${team.name}</span>
+                <span class="ranking-score">${scoreText}</span>
+            </div>`;
+    }).join('');
+    
+    document.getElementById('topRankings').innerHTML = topRankingsHTML;
+
+    // *** CHANGE HERE: Ensure the panel heading always says "Overall Team Rankings" ***
+    const panelHeading = document.querySelector('#overallRankingsContent h3');
+    panelHeading.textContent = 'Overall Team Rankings';
+}
+
+function populateStateFilter() {
+    const select = document.getElementById('stateFilter');
+    select.innerHTML = '<option value="">Show All States</option>'; // Reset to default
+
+    const sortedCodes = Array.from(uniqueStateCodes).sort();
+
+    sortedCodes.forEach(code => {
+        const option = document.createElement('option');
+        const fullName = getCircuitFullName(code);
+        option.value = code;
+        option.textContent = `${code} (${fullName})`;
+        select.appendChild(option);
+    });
+}
+
+function handleStateFilter() {
+    // This function simply triggers the unified visibility update
+    updateMapVisibility();
 }
 
 function renderCircuitRankings(data, targetId) {
@@ -752,6 +825,8 @@ function switchRankingView(view) {
 
     if (view === 'overall') {
         document.getElementById('overallRankingsContent').classList.remove('hidden');
+        // Re-apply visibility/filter logic when switching back to overall
+        updateMapVisibility(); 
     } else if (view === 'hs_circuit') {
         document.getElementById('hsCircuitRankingsContent').classList.remove('hidden');
     } else if (view === 'ms_circuit') {
@@ -769,8 +844,9 @@ function makePopupHTML(teamObj) {
   const rankText = teamObj.rank || '';
   
   let stateRankHTML = '';
-  if (teamObj.stateRank) {
-      stateRankHTML = `<span class="popup-label">State Rank:</span><span class="popup-value">#${teamObj.stateRank} (${teamObj.stateCode})</span>`;
+  if (teamObj.stateRank && teamObj.stateCode) {
+      // Include State Rank in the popup only, not the main ranking list
+      stateRankHTML = `<span class="popup-label">State Rank:</span><span class="popup-value">#${teamObj.stateRank} (${getCircuitFullName(teamObj.stateCode)})</span>`;
   }
 
   const popup = 
@@ -778,7 +854,8 @@ function makePopupHTML(teamObj) {
     <div class="popup-stats">
       <span class="popup-label">Score:</span><span class="score-badge">${teamObj.score.toFixed(1)}</span>
       <span class="popup-label">Nat'l Rank:</span><span class="rank-badge">${rankText ? '#' + rankText : '—'}</span>
-      ${stateRankHTML} <span class="popup-label">Location:</span><span class="popup-value">${teamObj.location || '—'}</span>
+      ${stateRankHTML} 
+      <span class="popup-label">Location:</span><span class="popup-value">${teamObj.location || '—'}</span>
       <span class="popup-label">Best Set:</span><span class="popup-value">${bestSetVal || '—'}</span>
     </div>`;
   return popup;
@@ -910,56 +987,74 @@ function toggleDarkMode() {
   createTileLayer(isDark);
 }
 
-function filterByRank() {
-  const txt = document.getElementById('topX').value;
-  const topX = txt ? parseInt(txt) : null;
-  let visibleCount = 0;
+function updateMapVisibility() {
+  const topX = document.getElementById('topX').value ? parseInt(document.getElementById('topX').value) : null;
+  const showHS = document.getElementById('gradeHS').checked;
+  const showMS = document.getElementById('gradeMS').checked;
+  const selectedState = document.getElementById('stateFilter').value;
 
-  circles.forEach((c) => {
-    const team = allTeams.find(t => t.name === c.name);
-    if (!team) return;
+  // 1. Filter the allTeams array based on criteria
+  const filteredTeams = allTeams.filter(team => {
+    let passesFilter = true;
     let rankNum = parseInt(team.rank);
-    let shouldShow = false;
+    let grade = team.rawScoreRow['Grade Level'] || ''; 
 
-    if (!topX || isNaN(rankNum)) {
-        shouldShow = true; 
-    } else if (rankNum <= topX) {
-        shouldShow = true; 
+    // A. Rank Filter
+    if (topX && rankNum && rankNum > topX) {
+        passesFilter = false;
     }
 
-    if (shouldShow) {
-      if (!markerLayerGroup.hasLayer(c.circle)) markerLayerGroup.addLayer(c.circle);
-      c.circle.setStyle({ opacity:1, fillOpacity:0.5 });
-      visibleCount++;
-    } else {
-      if (markerLayerGroup.hasLayer(c.circle)) markerLayerGroup.removeLayer(c.circle);
+    // B. Grade Filter
+    if (passesFilter) {
+        if (grade.toUpperCase().includes('HS') && !showHS) {
+            passesFilter = false;
+        } else if ((grade.toUpperCase().includes('MS') || grade.toUpperCase().includes('ES')) && !showMS) {
+            passesFilter = false;
+        } else if (!grade && (!showHS && !showMS)) { 
+            // If grade is unknown, hide it if user unchecked both
+            passesFilter = false;
+        }
     }
-  });
 
-  const rankingItems = document.querySelectorAll('#topRankings .ranking-item');
-  rankingItems.forEach(item => {
-    const rankAttr = item.getAttribute('data-team-rank');
-    const rankNum = parseInt(rankAttr);
+
+    // C. State Filter
+    if (passesFilter && selectedState) {
+        if (team.stateCode !== selectedState) {
+            passesFilter = false;
+        }
+    }
     
-    let showRankingItem = false;
-    if (!topX || isNaN(rankNum)) {
-        showRankingItem = true;
-    } else if (rankNum <= topX) {
-        showRankingItem = true;
+    // Update marker visibility
+    const circleData = circles.find(c => c.name === team.name);
+    if (circleData) {
+        if (passesFilter) {
+            if (!markerLayerGroup.hasLayer(circleData.circle)) markerLayerGroup.addLayer(circleData.circle);
+            circleData.circle.setStyle({ opacity:1, fillOpacity:0.5 });
+            // Re-bind popup content to ensure the latest state rank (if applicable) is shown
+            circleData.circle.setPopupContent(makePopupHTML(team)); 
+        } else {
+            if (markerLayerGroup.hasLayer(circleData.circle)) markerLayerGroup.removeLayer(circleData.circle);
+        }
     }
 
-    item.style.display = showRankingItem ? 'flex' : 'none';
+    return passesFilter;
   });
+
+  // 2. Update the Rankings List (only if Overall Rankings view is selected)
+  if (document.getElementById('rankingViewSelect').value === 'overall') {
+    // The teams list is filtered, but it will display the Global Rank due to the change in renderOverallRankings
+    renderOverallRankings(filteredTeams); 
+  }
 }
 
 function zoomToTeam(lat, lon, teamName) {
   map.setView([lat, lon], 11);
   setTimeout(() => {
-    circles.forEach(c => {
-      if (c.name === teamName) {
-        c.circle.openPopup();
-      }
-    });
+    // Find the circle in allTeams to ensure we get the reference
+    const team = allTeams.find(t => t.name === teamName);
+    if (team && team.circleRef) {
+      team.circleRef.openPopup();
+    }
   }, 300);
 
   const view = document.getElementById('rankingViewSelect').value;
@@ -970,6 +1065,7 @@ function zoomToTeam(lat, lon, teamName) {
   });
 
   const safeName = teamName.replace(/'/g, "\\'");
+  // Select item based on data attribute
   const rankItem = document.querySelector(`#topRankings .ranking-item[data-team-name="${safeName}"]`);
   
   if (rankItem) {
@@ -1060,16 +1156,8 @@ function calculateStateRanks() {
   const teamsByState = {};
 
   allTeams.forEach(team => {
-    let state = null;
-
-    const nameMatch = team.name.match(/\(([A-Z]{2})\)/);
-    if (nameMatch) {
-      state = nameMatch[1];
-    } 
-    else if (team.location && team.location.length === 2) {
-      state = team.location;
-    }
-
+    let state = team.stateCode; // Use the extracted state code
+    
     if (state) {
       if (!teamsByState[state]) teamsByState[state] = [];
       teamsByState[state].push(team);
@@ -1077,11 +1165,13 @@ function calculateStateRanks() {
   });
 
   Object.keys(teamsByState).forEach(state => {
+    // Sort teams within the state by score (descending)
     teamsByState[state].sort((a, b) => b.score - a.score);
     
+    // Assign state rank
     teamsByState[state].forEach((team, index) => {
       team.stateRank = index + 1;
-      team.stateCode = state;
+      // team.stateCode is already set
     });
   });
 }
