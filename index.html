@@ -22,7 +22,7 @@
     }
 
     #map { height: 100vh; width: 100vw; }
-    .leaflet-tooltip { background-color: rgba(15, 23, 42, 0.95); border: 2px solid #3b82f6; border-radius: 6px; padding: 6px 12px; font-weight: 600; font-size: 13px; color: white; box-shadow: 0 4px 12px rgba(59,130,246,0.4); }
+    /* REMOVED: .leaflet-tooltip styles to rely on custom one */
     .leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); background: linear-gradient(135deg,#1e293b 0%,#0f172a 100%); border: 1px solid rgba(59,130,246,0.3); }
     .leaflet-popup-content { margin: 20px; font-size: 14px; line-height: 1.6; color: #e2e8f0; }
     .leaflet-popup-tip { background: #1e293b; }
@@ -251,6 +251,76 @@
     .accolade-detail {
         color: #cbd5e1;
     }
+    
+    /* ---------------------------------------------------------------------------------- */
+    /* UPDATED STYLES for Nearby Teams Panel (using the old #overlapPopover ID) */
+    #overlapPopover {
+        position: absolute;
+        /* Default position is now just off-screen or top-left corner, it will be positioned dynamically */
+        top: 0; 
+        left: 0; 
+        transform: none; /* Crucial: Remove the fixed transform to allow dynamic positioning */
+        z-index: 2000;
+        background: linear-gradient(135deg,#1e293b 0%,#0f172a 100%); 
+        border: 1px solid #3b82f6; 
+        border-radius: 8px;
+        padding: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        pointer-events: auto; 
+        width: 250px; /* Fixed width */
+        max-height: 300px;
+        overflow-y: auto;
+        transition: opacity 0.2s ease, transform 0.2s ease; /* Smooth visual transition */
+    }
+    #overlapPopover h4 {
+        font-size: 14px;
+        color: #60a5fa;
+        padding-bottom: 5px;
+        border-bottom: 2px solid #3b82f6;
+        margin-bottom: 8px;
+        font-weight: 700;
+    }
+    .popover-item {
+        padding: 6px 10px;
+        font-size: 12px;
+        color: #e2e8f0;
+        cursor: pointer;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: background-color 0.2s;
+        border-bottom: 1px solid rgba(59,130,246,0.1);
+    }
+    .popover-item:last-child {
+        border-bottom: none;
+    }
+    .popover-item:hover {
+        background: rgba(59,130,246,0.15);
+    }
+    .popover-item .rank {
+        font-weight: 700;
+        color: #f97316;
+        margin-right: 5px;
+    }
+    
+    /* ---------------------------------------------------------------------------------- */
+    /* Custom Hover Tooltip Style */
+    #hoverTooltip {
+        position: absolute;
+        padding: 6px 10px;
+        border-radius: 6px;
+        background-color: rgba(15, 23, 42, 0.95); /* Dark background */
+        border: 2px solid #3b82f6;
+        color: white;
+        font-size: 13px;
+        font-weight: 600;
+        z-index: 3000;
+        pointer-events: none; /* Crucial: allows clicks to pass through to the circle */
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(59,130,246,0.4);
+        transition: opacity 0.1s ease-in-out;
+        opacity: 0;
+    }
 
   </style>
 </head>
@@ -369,6 +439,11 @@
 <div id="loading" class="loading">Loading Quizbowl Data...</div>
 
 <div id="map"></div>
+<!-- Custom panel element for nearby schools list (Repurposed from #overlapPopover) -->
+<div id="overlapPopover" class="hidden"></div> 
+<!-- Custom Hover Tooltip -->
+<div id="hoverTooltip" style="opacity:0;"></div>
+
 
 <script>
 /* ---------- Config / sheet links ---------- */
@@ -468,13 +543,15 @@ const accoladesData = [
 /* ---------- Globals ---------- */
 let map;
 let currentTileLayer;
-let allTeams = [];     // { name, lat, lon, score, rank, location, rawScoreRow, stateCode, stateRank }
-let circles = [];      // { circle, name, score, rank, lat, lon }
+let allTeams = [];     // { name, lat, lon, score, rank, location, rawScoreRow, stateCode, stateRank, circleRef }
+let circles = [];      // { circle, name, score, rank, lat, lon, raw, stateCode } -- kept for compatibility
 let markerLayerGroup = L.layerGroup();
 let radiusMultiplier = 1.0;
 // Global variable to hold missing teams list for UI rendering
 let teamsMissingLocationGlobal = []; 
 let uniqueStateCodes = new Set(); // New set to store unique state codes
+const nearbyTeamsPanel = document.getElementById('overlapPopover'); // Repurpose this ID for the new panel
+const hoverTooltip = document.getElementById('hoverTooltip'); // NEW: Tooltip element
 /* ---------- init ---------- */
 window.addEventListener('load', function() {
   map = L.map('map').setView([39, -95], 4);
@@ -488,6 +565,10 @@ window.addEventListener('load', function() {
   renderCircuitRankings(hsCircuitData, 'hsCircuitRankings');
   renderCircuitRankings(msCircuitData, 'msCircuitRankings');
   renderAccolades(accoladesData, 'accoladesList');
+
+  // Add map listeners for the nearby teams panel
+  map.on('popupopen', handlePopupOpen);
+  map.on('popupclose', hideNearbyTeamsPanel);
 });
 
 /* ---------- helper: create tile layer for dark/light ---------- */
@@ -540,8 +621,10 @@ function getOverallURL() {
   if ((hs && ms) || (!hs && !ms)) return OVERALL_SHEET_DEFAULT;
   if (hs && !ms) return OVERALL_SHEET_HS;
   
-  // FIX: This was the broken logic. Changed from (!ms && ms) to (!hs && ms)
+  // Logic fix: Should be !hs && ms for MS only
   if (!hs && ms) return OVERALL_SHEET_MS; 
+  
+  return OVERALL_SHEET_DEFAULT; // Fallback to default
 }
 
 /* ---------- reload data when grade toggles change ---------- */
@@ -690,8 +773,25 @@ async function loadData() {
         fillColor: color,
         fillOpacity: 0.5,
         weight: 2
-      }).addTo(markerLayerGroup).bindPopup(popupHTML);
-      circle.bindTooltip(t.name, { permanent: false, direction: 'top' });
+      }).addTo(markerLayerGroup)
+        .bindPopup(popupHTML);
+
+      // Attach custom mouse events for the hover tooltip
+      circle.on('mouseover', function(e) {
+          // Check if a popup is NOT currently open
+          if (!map.hasLayer(e.target._popup) || !e.target.isPopupOpen()) {
+              showHoverTooltip(t.name, e.originalEvent.clientX, e.originalEvent.clientY);
+              // Slight visual cue: Increase stroke weight on hover
+              e.target.setStyle({ weight: 4 }); 
+          }
+      });
+
+      circle.on('mouseout', function(e) {
+          hideHoverTooltip();
+          // Reset stroke weight on mouse out
+          e.target.setStyle({ weight: 2 });
+      });
+      
       t.circleRef = circle; // Store reference on the team object
       circles.push({ circle, name: t.name, score: t.score, rank: t.rank, lat: t.lat, lon: t.lon, raw: t.rawScoreRow, stateCode: t.stateCode });
     }
@@ -730,6 +830,178 @@ async function loadData() {
     document.getElementById('loading').classList.add('hidden');
   }
 }
+
+// -----------------------------------------------------------------
+// Hover Tooltip Functions
+// -----------------------------------------------------------------
+function showHoverTooltip(teamName, x, y) {
+    hoverTooltip.innerHTML = teamName;
+    
+    // Position the tooltip slightly offset from the cursor
+    // 10px below and 10px to the right of the cursor (x, y)
+    hoverTooltip.style.left = `${x + 10}px`;
+    hoverTooltip.style.top = `${y + 10}px`;
+    hoverTooltip.style.opacity = '1';
+}
+
+function hideHoverTooltip() {
+    hoverTooltip.style.opacity = '0';
+}
+// -----------------------------------------------------------------
+// END Hover Tooltip Functions
+// -----------------------------------------------------------------
+
+
+// -----------------------------------------------------------------
+// Nearby Teams Panel Logic (Replaces Overlap Popover)
+// -----------------------------------------------------------------
+
+/**
+ * Calculates teams within a specified radius of a given point.
+ * @param {number} lat - Latitude of the center point.
+ * @param {number} lon - Longitude of the center point.
+ * @param {string} excludeName - Name of the team to exclude from the list.
+ * @param {number} radiusKm - Search radius in kilometers.
+ * @returns {Array} List of nearby team objects, sorted by distance.
+ */
+function getNearbyTeams(lat, lon, excludeName, radiusKm = 50) {
+    const centerLatLng = L.latLng(lat, lon);
+    const nearby = [];
+
+    allTeams.forEach(team => {
+        // Skip the team itself and any hidden teams
+        if (team.name === excludeName || !team.circleRef || !markerLayerGroup.hasLayer(team.circleRef)) {
+            return;
+        }
+
+        const teamLatLng = L.latLng(team.lat, team.lon);
+        // map.distance returns distance in meters
+        const distanceMeters = map.distance(centerLatLng, teamLatLng);
+        const distanceKm = distanceMeters / 1000;
+
+        if (distanceKm <= radiusKm) {
+            nearby.push({
+                ...team,
+                distance: distanceKm
+            });
+        }
+    });
+
+    // Sort by distance ascending
+    return nearby.sort((a, b) => a.distance - b.distance);
+}
+
+
+function showNearbyTeamsPanel(team) {
+    const panel = nearbyTeamsPanel;
+    const nearby = getNearbyTeams(team.lat, team.lon, team.name, 50); // Search within 50km
+
+    if (nearby.length === 0) {
+        hideNearbyTeamsPanel();
+        return;
+    }
+
+    let content = `<h4>Nearby Teams (within 50 km)</h4>`;
+    
+    nearby.forEach(nearbyTeam => {
+        const rankText = nearbyTeam.rank ? `#${nearbyTeam.rank}` : '';
+        const distanceText = nearbyTeam.distance.toFixed(1) + ' km';
+        const nameText = nearbyTeam.name.replace(/'/g, "\\'"); 
+
+        content += `<div class="popover-item" 
+                    onclick="zoomToTeamAndOpenPopup(${nearbyTeam.lat}, ${nearbyTeam.lon}, '${nameText}')">
+                    <span class="rank">${rankText}</span> ${nearbyTeam.name}
+                    <span style="float:right; color:#94a3b8;">${distanceText}</span>
+                    </div>`;
+    });
+
+    panel.innerHTML = content;
+    panel.classList.remove('hidden');
+
+    // Wait a moment for the Leaflet popup to render, then position the panel next to it
+    // IMPORTANT: Use a slight delay to ensure the popup is in the DOM and positioned by Leaflet
+    setTimeout(() => {
+        const popup = document.querySelector('.leaflet-popup');
+        if (popup) {
+            // Get the popup's position relative to the viewport
+            const popupRect = popup.getBoundingClientRect();
+            const mapRect = map.getContainer().getBoundingClientRect();
+
+            // Calculate the position for the nearby teams panel relative to the MAP CONTAINER
+            let panelLeft = popupRect.right + 10 - mapRect.left; // 10px gap to the right of the popup
+            let panelTop = popupRect.top - mapRect.top;         // Align top with the popup
+
+            // Get the panel's current dimensions (must be rendered to get this)
+            const panelWidth = panel.offsetWidth;
+            const panelHeight = panel.offsetHeight;
+
+            // 1. Horizontal Boundary Check (Prioritized: Keep it on screen)
+            if (panelLeft + panelWidth > mapRect.width - 20) {
+                // If it goes off the right edge, place it to the left of the popup
+                // New position: Popup Left - Panel Width - 10px gap
+                panelLeft = popupRect.left - panelWidth - 10 - mapRect.left;
+                
+                // Secondary check: If moving it left makes it go off the left edge, clip to the left boundary
+                if (panelLeft < 10) {
+                    panelLeft = 10;
+                }
+            } else if (panelLeft < 10) {
+                // If it starts too far left (shouldn't happen if positioned right of popup, but check anyway)
+                 panelLeft = 10;
+            }
+
+            // 2. Vertical Boundary Check (Ensure it's fully on screen vertically)
+            
+            // Adjust top if the panel is too low
+            if (panelTop + panelHeight > mapRect.height - 20) {
+                 panelTop = mapRect.height - panelHeight - 20;
+            }
+            // Adjust top if the panel is too high
+            if (panelTop < 20) {
+                panelTop = 20;
+            }
+
+
+            panel.style.left = `${panelLeft}px`;
+            panel.style.top = `${panelTop}px`;
+            panel.style.transform = 'none'; // Ensure no conflicting CSS transform
+        }
+    }, 50);
+}
+
+function handlePopupOpen(e) {
+    // Hide hover tooltip if it's visible, just in case
+    hideHoverTooltip();
+    
+    const circle = e.popup._source;
+    if (circle && circle.options.pane === 'overlayPane') { // Check if it's one of our circles
+        const latLng = circle.getLatLng();
+        // Find the full team object using the lat/lon (name might be ambiguous)
+        const team = allTeams.find(t => t.lat === latLng.lat && t.lon === latLng.lng && t.circleRef === circle);
+        
+        if (team) {
+            showNearbyTeamsPanel(team);
+        }
+    }
+}
+
+function hideNearbyTeamsPanel() {
+    nearbyTeamsPanel.classList.add('hidden');
+    nearbyTeamsPanel.innerHTML = '';
+}
+
+function zoomToTeamAndOpenPopup(lat, lon, teamName) {
+    // Hide the existing nearby panel before zooming
+    hideNearbyTeamsPanel(); 
+    zoomToTeam(lat, lon, teamName);
+    // After zooming, the map will trigger handlePopupOpen if the team is clicked/popup is opened
+    // which handles the nearby list refresh
+}
+
+// -----------------------------------------------------------------
+// END Nearby Teams Panel Logic
+// -----------------------------------------------------------------
+
 
 function renderOverallRankings(teamsToShow) {
     // Sort the filtered list by rank
@@ -937,7 +1209,7 @@ function toggleDarkMode() {
   const isDark = document.getElementById('darkMode').checked;
   document.body.style.background = isDark ? '#0f172a' : '#f8fafc';
   document.body.style.color = isDark ? '#e2e8f0' : '#0f172a';
-  const panels = document.querySelectorAll('.control-panel, .rankings-panel, .loading');
+  const panels = document.querySelectorAll('.control-panel, .rankings-panel, .loading, #overlapPopover, #hoverTooltip');
   panels.forEach(panel => {
     if (isDark) {
       panel.style.background = 'linear-gradient(135deg,#1e293b 0%,#0f172a 100%)';
@@ -949,6 +1221,13 @@ function toggleDarkMode() {
       panel.style.color = '#0f172a';
     }
   });
+  // Special handling for hover tooltip background color which uses rgba
+  if (isDark) {
+      document.getElementById('hoverTooltip').style.backgroundColor = 'rgba(15, 23, 42, 0.95)';
+  } else {
+      document.getElementById('hoverTooltip').style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+  }
+  
   const headings = document.querySelectorAll('.control-panel h2, .rankings-panel h3, .filter-section h4');
   headings.forEach(h => h.style.color = isDark ? '#60a5fa' : '#2563eb');
   const labels = document.querySelectorAll('.control-group label, .popup-label, .checkbox-group label');
@@ -987,6 +1266,18 @@ function toggleDarkMode() {
   circuitTableHeaders.forEach(th => {
       th.style.color = isDark ? '#60a5fa' : '#2563eb';
   });
+
+  // Update popover background for dark mode consistency
+  const popoverEl = document.getElementById('overlapPopover');
+  if (isDark) {
+      popoverEl.style.background = 'linear-gradient(135deg,#1e293b 0%,#0f172a 100%)';
+      popoverEl.style.borderColor = '#3b82f6';
+      popoverEl.style.color = '#e2e8f0';
+  } else {
+      popoverEl.style.background = 'linear-gradient(135deg,#ffffff 0%,#f1f5f9 100%)';
+      popoverEl.style.borderColor = '#60a5fa';
+      popoverEl.style.color = '#0f172a';
+  }
 
 
   createTileLayer(isDark);
@@ -1032,15 +1323,15 @@ function updateMapVisibility() {
     }
     
     // Update marker visibility
-    const circleData = circles.find(c => c.name === team.name);
+    const circleData = allTeams.find(c => c.name === team.name);
     if (circleData) {
         if (passesFilter) {
-            if (!markerLayerGroup.hasLayer(circleData.circle)) markerLayerGroup.addLayer(circleData.circle);
-            circleData.circle.setStyle({ opacity:1, fillOpacity:0.5 });
+            if (!markerLayerGroup.hasLayer(circleData.circleRef)) markerLayerGroup.addLayer(circleData.circleRef);
+            circleData.circleRef.setStyle({ opacity:1, fillOpacity:0.8 }); // Increased fill opacity slightly for better visibility
             // Re-bind popup content to ensure the latest state rank (if applicable) is shown
-            circleData.circle.setPopupContent(makePopupHTML(team)); 
+            circleData.circleRef.setPopupContent(makePopupHTML(team)); 
         } else {
-            if (markerLayerGroup.hasLayer(circleData.circle)) markerLayerGroup.removeLayer(circleData.circle);
+            if (markerLayerGroup.hasLayer(circleData.circleRef)) markerLayerGroup.removeLayer(circleData.circleRef);
         }
     }
 
@@ -1091,11 +1382,23 @@ function handleSearchInput() {
   document.querySelectorAll('.ranking-item.selected').forEach(item => {
     item.classList.remove('selected');
   });
-  circles.forEach(c => c.circle.setStyle({ opacity:1, fillOpacity:0.5 })); 
+  // Dim non-matching circles during search
+  allTeams.forEach(t => {
+      if (t.circleRef && markerLayerGroup.hasLayer(t.circleRef)) {
+          if (t.name.toLowerCase().includes(q)) {
+              t.circleRef.setStyle({ opacity: 1, fillOpacity: 0.8 });
+          } else {
+              t.circleRef.setStyle({ opacity: 0.12, fillOpacity: 0.05 });
+          }
+      }
+  });
+
 
   if (!q) {
     suggestionsDiv.classList.add('hidden');
     suggestionsDiv.innerHTML = '';
+    // Restore opacity when search is cleared
+    updateMapVisibility();
     return;
   }
   
@@ -1112,14 +1415,12 @@ function handleSearchInput() {
   suggestionsDiv.classList.remove('hidden');
 
   let first = true;
-  circles.forEach(c => {
-    if (c.name.toLowerCase().includes(q)) {
-      c.circle.setStyle({ opacity:1, fillOpacity:0.8 });
-      if (first) { map.setView(c.circle.getLatLng(), 9); first = false; }
-    } else {
-      c.circle.setStyle({ opacity:0.12, fillOpacity:0.05 });
-    }
-  });
+  // Zoom to the first matching team
+  const firstMatch = matches[0];
+  if (firstMatch && firstMatch.circleRef) {
+      map.setView(firstMatch.circleRef.getLatLng(), 9);
+  }
+
 
   const rect = el.getBoundingClientRect();
   suggestionsDiv.style.left = (el.offsetLeft) + 'px';
@@ -1137,10 +1438,11 @@ function selectSuggestion(name) {
 
 document.addEventListener('click', (e) => {
   const s = document.getElementById('suggestions');
-  if (!s) return;
-  const wrapper = document.querySelector('.search-wrapper');
-  if (!wrapper.contains(e.target)) {
-    s.classList.add('hidden');
+  if (s) {
+    const wrapper = document.querySelector('.search-wrapper');
+    if (!wrapper.contains(e.target)) {
+      s.classList.add('hidden');
+    }
   }
 });
 
@@ -1154,6 +1456,14 @@ window.addEventListener('resize', () => {
   if (s && !s.classList.contains('hidden')) {
     s.style.left = el.offsetLeft + 'px';
     s.style.top = (el.offsetTop + el.offsetHeight + 6) + 'px';
+  }
+  // Re-run popover positioning if a popup is currently open
+  const openPopup = document.querySelector('.leaflet-popup');
+  if (openPopup) {
+      // Find the source circle (this is complicated, but a simple way is to re-trigger the handler)
+      // Since we don't have the event object, we can only re-hide or assume the last team is open.
+      // Better to just call hide and let the user re-open it to ensure correct positioning.
+      hideNearbyTeamsPanel();
   }
 });
 
