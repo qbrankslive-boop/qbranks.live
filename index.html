@@ -626,9 +626,12 @@ function clearData() {
 function getOverallURL() {
   const hs = document.getElementById('gradeHS').checked;
   const ms = document.getElementById('gradeMS').checked;
+  const naqt = document.getElementByID('naqt').checked;
+  const macf = document.getElementByID('macf'.checked;
   // If both checked or both unchecked -> show combined (default)
-  if ((hs && ms) || (!hs && !ms)) return OVERALL_SHEET_DEFAULT;
-  if (hs && !ms) return OVERALL_SHEET_HS;
+  if ((hs && ms && naqt && macf) || (!hs && !ms && !naqt && !macf) || (hs && ms && !naqt &&!macf) || (!hs && !ms && naqt &&macf) return OVERALL_SHEET_DEFAULT;
+  if (hs && !ms && !naqt &&!macf) return OVERALL_SHEET_HS;
+  if (!hs && !ms && !naqt && !macf) return NAQT_SHEET
   
   // Logic fix: Should be !hs && ms for MS only
   if (!hs && ms) return OVERALL_SHEET_MS; 
