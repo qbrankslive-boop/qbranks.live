@@ -421,12 +421,12 @@
       <div id="topRankings"></div>
   </div>
   
-  <div id="overallNAQTContent">
+  <div id="overallNAQTContent" class="hidden">
       <h3>Overall Team Rankings</h3>
       <div id="overallNAQT"></div>
   </div>
 
-  <div id="overallmACFContent">
+  <div id="overallmACFContent" class="hidden">
       <h3>Overall mACF Rankings</h3>
       <div id="overallmACF"></div>
   </div>
@@ -622,24 +622,17 @@ function clearData() {
   uniqueStateCodes.clear(); // Clear state codes
 }
 
-/* ---------- get proper overall sheet URL based on grade toggles ---------- */
 function getOverallURL() {
   const hs = document.getElementById('gradeHS').checked;
   const ms = document.getElementById('gradeMS').checked;
-  const naqt = document.getElementByID('naqt').checked;
-  const macf = document.getElementByID('macf'.checked;
   // If both checked or both unchecked -> show combined (default)
-  if ((hs && ms && naqt && macf) || (!hs && !ms && !naqt && !macf) || (hs && ms && !naqt &&!macf) || (!hs && !ms && naqt &&macf) return OVERALL_SHEET_DEFAULT;
-  if (hs && !ms && !naqt &&!macf) return OVERALL_SHEET_HS;
-  if (!hs && !ms && !naqt && !macf) return NAQT_SHEET
-  
-  // Logic fix: Should be !hs && ms for MS only
+  if ((hs && ms) || (!hs && !ms)|| return OVERALL_SHEET_DEFAULT;
+  if (hs && !ms) return OVERALL_SHEET_HS;  
   if (!hs && ms) return OVERALL_SHEET_MS; 
   
   return OVERALL_SHEET_DEFAULT; // Fallback to default
 }
 
-/* ---------- reload data when grade toggles change ---------- */
 function handleGradeToggle() {
   // reload dataset according to selected grade(s)
   refreshData();
