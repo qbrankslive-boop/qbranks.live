@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>QBRanks.live</title>
+  <title>qbranks.live</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
@@ -22,7 +22,6 @@
     }
 
     #map { height: 100vh; width: 100vw; }
-    /* REMOVED: .leaflet-tooltip styles to rely on custom one */
     .leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); background: linear-gradient(135deg,#1e293b 0%,#0f172a 100%); border: 1px solid rgba(59,130,246,0.3); }
     .leaflet-popup-content { margin: 20px; font-size: 14px; line-height: 1.6; color: #e2e8f0; }
     .leaflet-popup-tip { background: #1e293b; }
@@ -49,7 +48,6 @@
         transition: all 0.3s ease;
     }
 
-    /* Scrollbar for control panel */
     .control-panel::-webkit-scrollbar { width: 6px; }
     .control-panel::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); border-radius: 3px; }
     .control-panel::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 3px; }
@@ -62,7 +60,6 @@
     .control-group select:focus, .control-group input:focus { outline:none; border-color:#3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
     .control-group input::placeholder { color:#64748b; }
     
-    /* Stats Summary Styling */
     .stats-summary { 
         background: linear-gradient(135deg,#8b5cf6 0%,#6366f1 100%); 
         color:white; 
@@ -74,17 +71,16 @@
         box-shadow:0 4px 12px rgba(139,92,246,0.4); 
     }
     .stats-summary strong { font-size:16px; }
-    /* Missing Teams List Styling */
     .missing-teams-list {
         margin-top: 8px;
         padding: 5px;
         background-color: rgba(255, 255, 255, 0.1);
         border-radius: 4px;
         font-size: 11px;
-        list-style: none; /* Remove bullet points */
+        list-style: none;
         padding-left: 10px;
         border-left: 3px solid #f97316;
-        color: #fef3c7; /* Light text for visibility */
+        color: #fef3c7;
     }
     .missing-teams-list li {
         margin-bottom: 2px;
@@ -93,7 +89,6 @@
         text-overflow: ellipsis;
     }
 
-    /* Settings button style (Now a hamburger) */
     #toggleSettings { 
         position:absolute; 
         top:20px; 
@@ -110,7 +105,6 @@
         transition:all 0.3s; 
     }
 
-    /* Rankings button style (The second hamburger) */
     #toggleRankings { 
         position: absolute; 
         top: 20px; 
@@ -125,10 +119,8 @@
         box-shadow: 0 4px 12px rgba(236,72,153,0.4); 
         z-index: 1001; 
         transition: all 0.3s;
-        transform: translate(0, 0); 
     }
 
-    /* Rankings Panel positioning relative to its toggle button */
     .rankings-panel { 
         position:absolute; 
         top:70px; 
@@ -148,7 +140,6 @@
 
     .rankings-panel h3 { margin:0 0 12px 0; font-size:16px; color:#60a5fa; border-bottom:2px solid #3b82f6; padding-bottom:6px; }
     
-    /* Individual Team Ranking Item */
     .ranking-item { 
         display:flex; justify-content:space-between; align-items:center; 
         padding:8px; margin-bottom:6px; 
@@ -158,7 +149,6 @@
     }
     .ranking-item:hover { background: rgba(59,130,246,0.12); border-color:#3b82f6; transform: translateX(3px); }
     
-    /* Style for the selected item */
     .ranking-item.selected { 
         background: linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%); 
         color: white !important; 
@@ -184,7 +174,6 @@
     .rankings-panel::-webkit-scrollbar-thumb { background: #3b82f6; border-radius:3px; }
     .rankings-panel::-webkit-scrollbar-thumb:hover { background: #60a5fa; }
     
-    /* search suggestions (Scrollable with max-height) */
     .suggestions { 
         position: absolute; 
         z-index: 1500; 
@@ -203,15 +192,12 @@
 
     .suggestion-item { padding:6px 10px; cursor:pointer; font-size:13px; color:#0f172a; border-bottom:1px solid rgba(0,0,0,0.05); }
     .suggestion-item:hover { background: rgba(59,130,246,0.08); color:#0f172a; }
-    /* make sure suggestion placed relative to search input */
     .search-wrapper { position: relative; }
 
-    /* Loading text style */
     .loading { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%); padding:30px 50px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.5); z-index:2000; font-size:18px; font-weight:bold; color:#60a5fa; border:1px solid rgba(59,130,246,0.3); animation:pulse 2s ease-in-out infinite; }
     @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.7 } }
     .hidden { display:none; }
 
-    /* New styles for Circuit Tables and Accolades */
     .circuit-table { 
         width: 100%; 
         border-collapse: collapse; 
@@ -230,7 +216,7 @@
         white-space: nowrap;
     }
     .circuit-table td:nth-child(2) {
-        font-weight: 600; /* Bold the circuit/state name */
+        font-weight: 600;
     }
 
     .accolade-item {
@@ -252,14 +238,11 @@
         color: #cbd5e1;
     }
     
-    /* ---------------------------------------------------------------------------------- */
-    /* UPDATED STYLES for Nearby Teams Panel (using the old #overlapPopover ID) */
     #overlapPopover {
         position: absolute;
-        /* Default position is now just off-screen or top-left corner, it will be positioned dynamically */
         top: 0; 
         left: 0; 
-        transform: none; /* Crucial: Remove the fixed transform to allow dynamic positioning */
+        transform: none;
         z-index: 2000;
         background: linear-gradient(135deg,#1e293b 0%,#0f172a 100%); 
         border: 1px solid #3b82f6; 
@@ -267,10 +250,10 @@
         padding: 10px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.4);
         pointer-events: auto; 
-        width: 250px; /* Fixed width */
+        width: 250px;
         max-height: 300px;
         overflow-y: auto;
-        transition: opacity 0.2s ease, transform 0.2s ease; /* Smooth visual transition */
+        transition: opacity 0.2s ease, transform 0.2s ease;
     }
     #overlapPopover h4 {
         font-size: 14px;
@@ -303,25 +286,22 @@
         margin-right: 5px;
     }
     
-    /* ---------------------------------------------------------------------------------- */
-    /* Custom Hover Tooltip Style */
     #hoverTooltip {
         position: absolute;
         padding: 6px 10px;
         border-radius: 6px;
-        background-color: rgba(15, 23, 42, 0.95); /* Dark background */
+        background-color: rgba(15, 23, 42, 0.95);
         border: 2px solid #3b82f6;
         color: white;
         font-size: 13px;
         font-weight: 600;
         z-index: 3000;
-        pointer-events: none; /* Crucial: allows clicks to pass through to the circle */
+        pointer-events: none;
         white-space: nowrap;
         box-shadow: 0 2px 8px rgba(59,130,246,0.4);
         transition: opacity 0.1s ease-in-out;
         opacity: 0;
     }
-
   </style>
 </head>
 <body>
@@ -356,7 +336,7 @@
     </div>
 
     <div class="control-group">
-      <label>Circle Size Mode</slabel>
+      <label>Circle Size Mode</label>
       <select id="sizeMode" onchange="updateSizes()">
         <option value="score">By Score</option>
         <option value="uniform">Uniform</option>
@@ -376,7 +356,6 @@
       <label>Filter by State/Region</label>
       <select id="stateFilter" onchange="handleStateFilter()">
         <option value="">Show All States</option>
-        <!-- Options populated by JS -->
       </select>
     </div>
 
@@ -395,6 +374,18 @@
     <div class="checkbox-group">
       <input type="checkbox" id="gradeMS" checked onchange="handleGradeToggle()">
       <label for="gradeMS">Middle/Elementary (MS/ES)</label>
+    </div>
+  </div>
+
+  <div class="filter-section">
+    <h4>Set Type Filter</h4> 
+    <div class="checkbox-group">
+      <input type="checkbox" id="setNAQT" checked onchange="handleSetToggle()">
+      <label for="setNAQT">NAQT</label>
+    </div>
+    <div class="checkbox-group">
+      <input type="checkbox" id="setmACF" checked onchange="handleSetToggle()">
+      <label for="setmACF">mACF</label>
     </div>
   </div>
 
@@ -433,31 +424,26 @@
       <h3>Accolades</h3>
       <div id="accoladesList"></div>
   </div>
-
 </div>
 
-<div id="loading" class="loading">Loading Quizbowl Data...</div>
+<div id="loading" class="loading hidden">Loading data...</div>
 
 <div id="map"></div>
-<!-- Custom panel element for nearby schools list (Repurposed from #overlapPopover) -->
 <div id="overlapPopover" class="hidden"></div> 
-<!-- Custom Hover Tooltip -->
 <div id="hoverTooltip" style="opacity:0;"></div>
-
-
 <script>
-/* ---------- Config / sheet links ---------- */
-// **CHANGE THIS TO YOUR ACTUAL SHEET ID**
 const SHEET_ID = "1ZiV-l0X4Hlvice0GX7CJZ5YGlXodMcdCNRGVanVzlaA"; 
 const LOCATION_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Location%20Data`;
-// default overall sheet (all)
-const OVERALL_SHEET_DEFAULT = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Overall`;
-// HS-only and MS-only based on user-provided gids:
-const OVERALL_SHEET_HS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=39357228`;
-const OVERALL_SHEET_MS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1050804017`;
+const OVERALL_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1322713749`;
+const OVERALL_NAQT_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=81041869`;
+const OVERALL_MACF_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=2002621808`;
+const HS_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=39357228`;
+const HS_NAQT_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=911106844`;
+const HS_MACF_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=520787947`;
+const MS_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1050804017`;
+const MS_NAQT_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=566842992`;
+const MS_MACF_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1791150640`;
 
-/* ---------- Static Circuit and Accolade Data ---------- */
-// Utility function to convert 2-letter codes to full names
 function getCircuitFullName(code) {
     const map = {
         'MA': 'Massachusetts', 'IL': 'Illinois', 'TX': 'Texas', 'GA': 'Georgia', 'CA': 'California',
@@ -469,7 +455,7 @@ function getCircuitFullName(code) {
         'DC': 'District of Columbia', 'ME': 'Maine', 'NH': 'New Hampshire', 'MS': 'Mississippi',
         'WV': 'West Virginia', 'ON': 'Ontario (Canada)', 'NM': 'New Mexico', 'WI': 'Wisconsin',
         'CR': 'Costa Rica', 'AB': 'Alberta (Canada)', 'ROK': 'South Korea', 'NV': 'Nevada',
-        'South Korea': 'South Korea' // Ensure non-code values pass through
+        'South Korea': 'South Korea'
     };
     return map[code] || code;
 }
@@ -523,7 +509,7 @@ const msCircuitData = [
     { rank: 22, circuit: 'OK', strength: 3.82 },
     { rank: 23, circuit: 'PA', strength: 3.43 },
     { rank: 24, circuit: 'MA', strength: 3.38 }
-].map(c => ({...c, circuit: getCircuitFullName(c.circuit)})); // Map to full names
+].map(c => ({...c, circuit: getCircuitFullName(c.circuit)}));
 
 const accoladesData = [
     { title: "Best Team", detail: "Lexington A (99.25, #1)" },
@@ -533,26 +519,23 @@ const accoladesData = [
     { title: "Best MS Team on NAQT", detail: "St. Mark's School of Texas Middle A (67.92, #152)" },
     { title: "Best MS Team on mACF", detail: "Smith Middle A (65.08, #224)" },
     { title: "Best Tournament Director", detail: "Scott Kim (North by North Gwinnett IX, 56 teams)" },
-    { title: "Best HS Circuit", detail: `Illinois, Strength: 22.13` }, // Updated title and value
-    { title: "Best MS Circuit", detail: `Texas, Strength: 22.33` },   // Updated title and value
+    { title: "Best HS Circuit", detail: `Illinois, Strength: 22.13` },
+    { title: "Best MS Circuit", detail: `Texas, Strength: 22.33` },
     { title: "Best HS Rivalry", detail: "East Chapel Hill A vs Early College at Guilford A" },
     { title: "Best MS Rivalry", detail: "Hopkins A vs Redwood A" }
 ];
-/* ---------- END Static Circuit and Accolade Data ---------- */
 
-/* ---------- Globals ---------- */
 let map;
 let currentTileLayer;
-let allTeams = [];     // { name, lat, lon, score, rank, location, rawScoreRow, stateCode, stateRank, circleRef }
-let circles = [];      // { circle, name, score, rank, lat, lon, raw, stateCode } -- kept for compatibility
+let allTeams = [];
+let circles = [];
 let markerLayerGroup = L.layerGroup();
 let radiusMultiplier = 1.0;
-// Global variable to hold missing teams list for UI rendering
-let teamsMissingLocationGlobal = []; 
-let uniqueStateCodes = new Set(); // New set to store unique state codes
-const nearbyTeamsPanel = document.getElementById('overlapPopover'); // Repurpose this ID for the new panel
-const hoverTooltip = document.getElementById('hoverTooltip'); // NEW: Tooltip element
-/* ---------- init ---------- */
+let teamsMissingLocationGlobal = [];
+let uniqueStateCodes = new Set();
+const nearbyTeamsPanel = document.getElementById('overlapPopover');
+const hoverTooltip = document.getElementById('hoverTooltip');
+
 window.addEventListener('load', function() {
   map = L.map('map').setView([39, -95], 4);
   currentTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -561,17 +544,13 @@ window.addEventListener('load', function() {
   }).addTo(map);
   markerLayerGroup.addTo(map);
   loadData();
-  // Initialize the static ranking views
   renderCircuitRankings(hsCircuitData, 'hsCircuitRankings');
   renderCircuitRankings(msCircuitData, 'msCircuitRankings');
   renderAccolades(accoladesData, 'accoladesList');
-
-  // Add map listeners for the nearby teams panel
   map.on('popupopen', handlePopupOpen);
   map.on('popupclose', hideNearbyTeamsPanel);
 });
 
-/* ---------- helper: create tile layer for dark/light ---------- */
 function createTileLayer(isDark) {
   if (currentTileLayer) { map.removeLayer(currentTileLayer); }
   if (isDark) {
@@ -581,7 +560,6 @@ function createTileLayer(isDark) {
   }
 }
 
-/* ---------- CSV loader ---------- */
 function loadCSV(url) {
   return new Promise((resolve, reject) => {
     Papa.parse(url, {
@@ -594,13 +572,11 @@ function loadCSV(url) {
   });
 }
 
-/* ---------- utility: normalize text for fuzzy matching ---------- */
 function normalize(str) {
   if (!str) return '';
   return String(str).trim().toLowerCase().replace(/\s+/g,' ').replace(/[^\w\s]/g,'');
 }
 
-/* ---------- clear existing markers/arrays ---------- */
 function clearData() {
   allTeams = [];
   circles.forEach(c => {
@@ -609,31 +585,42 @@ function clearData() {
   circles = [];
   markerLayerGroup.clearLayers();
   document.getElementById('topRankings').innerHTML = '';
-  teamsMissingLocationGlobal = []; // Clear the global list
-  uniqueStateCodes.clear(); // Clear state codes
+  teamsMissingLocationGlobal = [];
+  uniqueStateCodes.clear();
 }
 
-/* ---------- get proper overall sheet URL based on grade toggles ---------- */
 function getOverallURL() {
   const hs = document.getElementById('gradeHS').checked;
   const ms = document.getElementById('gradeMS').checked;
-  // If both checked or both unchecked -> show combined (default)
-  if ((hs && ms) || (!hs && !ms)) return OVERALL_SHEET_DEFAULT;
-  if (hs && !ms) return OVERALL_SHEET_HS;
+  const naqt = document.getElementById('setNAQT').checked;
+  const macf = document.getElementById('setmACF').checked;
   
-  // Logic fix: Should be !hs && ms for MS only
-  if (!hs && ms) return OVERALL_SHEET_MS; 
+  if (hs && ms && naqt && macf) return OVERALL_SHEET;
+  if (ms && !hs && naqt && macf) return MS_SHEET;
+  if (hs && !ms && naqt && macf) return HS_SHEET;
+  if (ms && hs && naqt && !macf) return OVERALL_NAQT_SHEET;
+  if (ms && hs && !naqt && macf) return OVERALL_MACF_SHEET;
+  if (ms && !hs && naqt && !macf) return MS_NAQT_SHEET;
+  if (ms && !hs && !naqt && macf) return MS_MACF_SHEET;
+  if (hs && !ms && naqt && !macf) return HS_NAQT_SHEET;
+  if (hs && !ms && !naqt && macf) return HS_MACF_SHEET;
+  if (hs && !ms && !naqt && !macf) return HS_SHEET;
+  if (ms && !hs && !naqt && !macf) return MS_SHEET;
+  if (!hs && !ms && naqt && !macf) return OVERALL_NAQT_SHEET;
+  if (!hs && !ms && !naqt && macf) return OVERALL_MACF_SHEET;
+  if (!hs && !ms && !naqt && !macf) return OVERALL_SHEET;
   
-  return OVERALL_SHEET_DEFAULT; // Fallback to default
+  return OVERALL_SHEET;
 }
 
-/* ---------- reload data when grade toggles change ---------- */
 function handleGradeToggle() {
-  // reload dataset according to selected grade(s)
   refreshData();
 }
 
-/* ---------- refresh: clear and load ---------- */
+function handleSetToggle() {
+  refreshData();
+}
+
 async function refreshData() {
   clearData();
   document.getElementById('loading').classList.remove('hidden');
@@ -648,33 +635,28 @@ async function loadData() {
 
     const [locData, scoreData] = await Promise.all([ loadCSV(locUrl), loadCSV(overallUrl) ]);
 
-    const possibleNameCols = ["Team","Team Name","School","School Name","Name"];
-    let teamColumnName = null;
-    if (scoreData.length > 0) {
-      for (let col of possibleNameCols) {
-        if (scoreData[0].hasOwnProperty(col)) { teamColumnName = col; break; }
-      }
+    const isOverallType = (overallUrl === OVERALL_SHEET || overallUrl === OVERALL_NAQT_SHEET || overallUrl === OVERALL_MACF_SHEET);
+    
+    let teamColumnName, rankColumnName, scoreColumnName, bestSetColumnName, bestTournColumnName;
+    
+    if (isOverallType) {
+      const firstRow = scoreData[0];
+      const keys = Object.keys(firstRow);
+      rankColumnName = keys[0];
+      teamColumnName = keys[1];
+      scoreColumnName = keys[2];
+      bestSetColumnName = keys[3];
+      bestTournColumnName = keys[4];
+    } else {
+      const firstRow = scoreData[0];
+      const keys = Object.keys(firstRow);
+      rankColumnName = keys[0];
+      teamColumnName = keys[2];
+      scoreColumnName = keys[3];
+      bestSetColumnName = keys[4];
+      bestTournColumnName = keys[5];
     }
-    if (!teamColumnName) {
-      console.warn('No team name column found in score data. Using first column as fallback.');
-      teamColumnName = Object.keys(scoreData[0])[0];
-    }
-    const bestSetNames = ["Best Set","Best Set Name","Best Set(s)","Best_Set","BestSet"];
-    function findColCandidate(rowSample, candidates) {
-      for (let cand of candidates) {
-        if (rowSample.hasOwnProperty(cand)) return cand;
-      }
-      const keys = Object.keys(rowSample);
-      for (let cand of candidates) {
-        const lc = cand.toLowerCase().replace(/\W/g,'');
-        for (let k of keys) {
-          if (k.toLowerCase().replace(/\W/g,'') === lc) return k;
-        }
-      }
-      return null;
-    }
-    const bestSetCol = scoreData.length ? findColCandidate(scoreData[0], bestSetNames) : null;
-    const bestTournCol = null; 
+    
     const locationMap = {};
     for (const row of locData) {
         const name = (row["Team Name"] || row["Team"] || row["Name"] || '').trim();
@@ -682,12 +664,12 @@ async function loadData() {
     }
     let maxScore = 0;
     for (const row of scoreData) {
-      const s = parseFloat(row.Score);
+      const s = parseFloat(row[scoreColumnName]);
       if (!isNaN(s)) maxScore = Math.max(maxScore, s);
     }
     
-    let teamsMissingLocation = []; 
-    let tempStateCodes = new Set(); // Temporary set for dropdown population
+    let teamsMissingLocation = [];
+    let tempStateCodes = new Set();
 
     for (const scoreRow of scoreData) {
         const name = String(scoreRow[teamColumnName] || '').trim();
@@ -712,8 +694,8 @@ async function loadData() {
         
         const lat = parseFloat(teamRow["Latitude (N∘)"] || teamRow["Latitude"] || teamRow["Lat"]);
         const lon = parseFloat(teamRow["Longitude (W∘ or E∘)"] || teamRow["Longitude"] || teamRow["Lon"]);
-        const scoreVal = parseFloat(scoreRow.Score);
-        const rankVal = scoreRow.Rank || scoreRow["Ranking"] || scoreRow["Rank #"] || scoreRow["#"] || '';
+        const scoreVal = parseFloat(scoreRow[scoreColumnName]);
+        const rankVal = scoreRow[rankColumnName] || '';
 
         if (isNaN(lat) || isNaN(lon) || isNaN(scoreVal)) continue;
         
@@ -725,18 +707,16 @@ async function loadData() {
             rank: rankVal,
             location: teamRow["State/Region Context"] || teamRow["State"] || teamRow["Location"] || '',
             rawScoreRow: scoreRow,
-            bestSetCol,
-            bestTournCol,
-            stateCode: null, // New property to store extracted state code
-            circleRef: null // Reference to the created circle
+            bestSetCol: bestSetColumnName,
+            bestTournCol: bestTournColumnName,
+            stateCode: null,
+            circleRef: null
         };
 
-        // Extract state code from team name (e.g., "Chapel Hill (NC) A" -> "NC")
         const nameMatch = team.name.match(/\(([A-Z]{2})\)\s*[A-Za-z]?$/);
         if (nameMatch) {
             team.stateCode = nameMatch[1];
         } else if (team.location && team.location.length === 2 && team.location.toUpperCase() === team.location) {
-            // Fallback to location column if it's a 2-letter code in all caps
             team.stateCode = team.location;
         }
         
@@ -748,23 +728,19 @@ async function loadData() {
     }
 
     teamsMissingLocationGlobal = teamsMissingLocation;
-    uniqueStateCodes = tempStateCodes; // Save the unique list globally
+    uniqueStateCodes = tempStateCodes;
 
     if (teamsMissingLocationGlobal.length > 0) {
-        console.warn(`
-            🚨 TEAMS MISSING LOCATION DATA (from Overall Sheet but not found in Location Data Sheet) 🚨
-            ------------------------------------------------------------------------------------------
-            Missing ${teamsMissingLocationGlobal.length} team(s). You need to add coordinates for these in the Location Data sheet.
-        `);
-        console.log(teamsMissingLocationGlobal); 
+        console.warn(`Missing ${teamsMissingLocationGlobal.length} team(s) location data.`);
+        console.log(teamsMissingLocationGlobal);
     }
     
-    populateStateFilter(); // Populate the new dropdown
+    populateStateFilter();
     calculateStateRanks();
 
     const maxScoreLocal = Math.max(...allTeams.map(t => t.score || 0), 0);
     for (const t of allTeams) {
-      const radius = computeRadius(t.score, maxScoreLocal); 
+      const radius = computeRadius(t.score, maxScoreLocal);
       const color = randomColor();
       const popupHTML = makePopupHTML(t);
       const circle = L.circle([t.lat, t.lon], {
@@ -776,28 +752,23 @@ async function loadData() {
       }).addTo(markerLayerGroup)
         .bindPopup(popupHTML);
 
-      // Attach custom mouse events for the hover tooltip
       circle.on('mouseover', function(e) {
-          // Check if a popup is NOT currently open
           if (!map.hasLayer(e.target._popup) || !e.target.isPopupOpen()) {
               showHoverTooltip(t.name, e.originalEvent.clientX, e.originalEvent.clientY);
-              // Slight visual cue: Increase stroke weight on hover
-              e.target.setStyle({ weight: 4 }); 
+              e.target.setStyle({ weight: 4 });
           }
       });
 
       circle.on('mouseout', function(e) {
           hideHoverTooltip();
-          // Reset stroke weight on mouse out
           e.target.setStyle({ weight: 2 });
       });
       
-      t.circleRef = circle; // Store reference on the team object
+      t.circleRef = circle;
       circles.push({ circle, name: t.name, score: t.score, rank: t.rank, lat: t.lat, lon: t.lon, raw: t.rawScoreRow, stateCode: t.stateCode });
     }
 
-    // Initial population of the rankings panel (before filtering)
-    renderOverallRankings(allTeams); 
+    renderOverallRankings(allTeams);
     
     const avgScore = allTeams.reduce((a,b) => a + (b.score||0), 0) / Math.max(allTeams.length,1);
     let statsHTML = `
@@ -808,9 +779,8 @@ async function loadData() {
     
     if (teamsMissingLocationGlobal.length > 0) {
         const missingListHTML = teamsMissingLocationGlobal.map(name => `<li>${name}</li>`).join('');
-
         statsHTML += `<br>
-            <span style="color: #f97316; font-weight: bold;">⚠️ ${teamsMissingLocationGlobal.length} missing location data!</span>
+            <span style="color: #f97316; font-weight: bold;"> ${teamsMissingLocationGlobal.length} missing location data!</span>
             <ul class="missing-teams-list">
                 ${missingListHTML}
             </ul>
@@ -818,11 +788,8 @@ async function loadData() {
     }
     
     document.getElementById('statsSummary').innerHTML = statsHTML;
-
     document.getElementById('loading').classList.add('hidden');
-
-    updateMapVisibility(); // Call the unified visibility function
-
+    updateMapVisibility();
     console.log('Data loading completed.');
   } catch (err) {
     console.error('Error loading data:', err);
@@ -831,14 +798,8 @@ async function loadData() {
   }
 }
 
-// -----------------------------------------------------------------
-// Hover Tooltip Functions
-// -----------------------------------------------------------------
 function showHoverTooltip(teamName, x, y) {
     hoverTooltip.innerHTML = teamName;
-    
-    // Position the tooltip slightly offset from the cursor
-    // 10px below and 10px to the right of the cursor (x, y)
     hoverTooltip.style.left = `${x + 10}px`;
     hoverTooltip.style.top = `${y + 10}px`;
     hoverTooltip.style.opacity = '1';
@@ -847,35 +808,17 @@ function showHoverTooltip(teamName, x, y) {
 function hideHoverTooltip() {
     hoverTooltip.style.opacity = '0';
 }
-// -----------------------------------------------------------------
-// END Hover Tooltip Functions
-// -----------------------------------------------------------------
 
-
-// -----------------------------------------------------------------
-// Nearby Teams Panel Logic (Replaces Overlap Popover)
-// -----------------------------------------------------------------
-
-/**
- * Calculates teams within a specified radius of a given point.
- * @param {number} lat - Latitude of the center point.
- * @param {number} lon - Longitude of the center point.
- * @param {string} excludeName - Name of the team to exclude from the list.
- * @param {number} radiusKm - Search radius in kilometers.
- * @returns {Array} List of nearby team objects, sorted by distance.
- */
 function getNearbyTeams(lat, lon, excludeName, radiusKm = 50) {
     const centerLatLng = L.latLng(lat, lon);
     const nearby = [];
 
     allTeams.forEach(team => {
-        // Skip the team itself and any hidden teams
         if (team.name === excludeName || !team.circleRef || !markerLayerGroup.hasLayer(team.circleRef)) {
             return;
         }
 
         const teamLatLng = L.latLng(team.lat, team.lon);
-        // map.distance returns distance in meters
         const distanceMeters = map.distance(centerLatLng, teamLatLng);
         const distanceKm = distanceMeters / 1000;
 
@@ -887,14 +830,12 @@ function getNearbyTeams(lat, lon, excludeName, radiusKm = 50) {
         }
     });
 
-    // Sort by distance ascending
     return nearby.sort((a, b) => a.distance - b.distance);
 }
 
-
 function showNearbyTeamsPanel(team) {
     const panel = nearbyTeamsPanel;
-    const nearby = getNearbyTeams(team.lat, team.lon, team.name, 50); // Search within 50km
+    const nearby = getNearbyTeams(team.lat, team.lon, team.name, 50);
 
     if (nearby.length === 0) {
         hideNearbyTeamsPanel();
@@ -906,7 +847,7 @@ function showNearbyTeamsPanel(team) {
     nearby.forEach(nearbyTeam => {
         const rankText = nearbyTeam.rank ? `#${nearbyTeam.rank}` : '';
         const distanceText = nearbyTeam.distance.toFixed(1) + ' km';
-        const nameText = nearbyTeam.name.replace(/'/g, "\\'"); 
+        const nameText = nearbyTeam.name.replace(/'/g, "\\'");
 
         content += `<div class="popover-item" 
                     onclick="zoomToTeamAndOpenPopup(${nearbyTeam.lat}, ${nearbyTeam.lon}, '${nameText}')">
@@ -918,67 +859,47 @@ function showNearbyTeamsPanel(team) {
     panel.innerHTML = content;
     panel.classList.remove('hidden');
 
-    // Wait a moment for the Leaflet popup to render, then position the panel next to it
-    // IMPORTANT: Use a slight delay to ensure the popup is in the DOM and positioned by Leaflet
     setTimeout(() => {
         const popup = document.querySelector('.leaflet-popup');
         if (popup) {
-            // Get the popup's position relative to the viewport
             const popupRect = popup.getBoundingClientRect();
             const mapRect = map.getContainer().getBoundingClientRect();
 
-            // Calculate the position for the nearby teams panel relative to the MAP CONTAINER
-            let panelLeft = popupRect.right + 10 - mapRect.left; // 10px gap to the right of the popup
-            let panelTop = popupRect.top - mapRect.top;         // Align top with the popup
+            let panelLeft = popupRect.right + 10 - mapRect.left;
+            let panelTop = popupRect.top - mapRect.top;
 
-            // Get the panel's current dimensions (must be rendered to get this)
             const panelWidth = panel.offsetWidth;
             const panelHeight = panel.offsetHeight;
 
-            // 1. Horizontal Boundary Check (Prioritized: Keep it on screen)
             if (panelLeft + panelWidth > mapRect.width - 20) {
-                // If it goes off the right edge, place it to the left of the popup
-                // New position: Popup Left - Panel Width - 10px gap
                 panelLeft = popupRect.left - panelWidth - 10 - mapRect.left;
-                
-                // Secondary check: If moving it left makes it go off the left edge, clip to the left boundary
                 if (panelLeft < 10) {
                     panelLeft = 10;
                 }
             } else if (panelLeft < 10) {
-                // If it starts too far left (shouldn't happen if positioned right of popup, but check anyway)
                  panelLeft = 10;
             }
 
-            // 2. Vertical Boundary Check (Ensure it's fully on screen vertically)
-            
-            // Adjust top if the panel is too low
             if (panelTop + panelHeight > mapRect.height - 20) {
                  panelTop = mapRect.height - panelHeight - 20;
             }
-            // Adjust top if the panel is too high
             if (panelTop < 20) {
                 panelTop = 20;
             }
 
-
             panel.style.left = `${panelLeft}px`;
             panel.style.top = `${panelTop}px`;
-            panel.style.transform = 'none'; // Ensure no conflicting CSS transform
+            panel.style.transform = 'none';
         }
     }, 50);
 }
 
 function handlePopupOpen(e) {
-    // Hide hover tooltip if it's visible, just in case
     hideHoverTooltip();
-    
     const circle = e.popup._source;
-    if (circle && circle.options.pane === 'overlayPane') { // Check if it's one of our circles
+    if (circle && circle.options.pane === 'overlayPane') {
         const latLng = circle.getLatLng();
-        // Find the full team object using the lat/lon (name might be ambiguous)
         const team = allTeams.find(t => t.lat === latLng.lat && t.lon === latLng.lng && t.circleRef === circle);
-        
         if (team) {
             showNearbyTeamsPanel(team);
         }
@@ -991,20 +912,11 @@ function hideNearbyTeamsPanel() {
 }
 
 function zoomToTeamAndOpenPopup(lat, lon, teamName) {
-    // Hide the existing nearby panel before zooming
-    hideNearbyTeamsPanel(); 
+    hideNearbyTeamsPanel();
     zoomToTeam(lat, lon, teamName);
-    // After zooming, the map will trigger handlePopupOpen if the team is clicked/popup is opened
-    // which handles the nearby list refresh
 }
 
-// -----------------------------------------------------------------
-// END Nearby Teams Panel Logic
-// -----------------------------------------------------------------
-
-
 function renderOverallRankings(teamsToShow) {
-    // Sort the filtered list by rank
     const sorted = [...teamsToShow].sort((a,b) => {
       const ra = parseInt(a.rank) || 9999999;
       const rb = parseInt(b.rank) || 9999999;
@@ -1013,10 +925,7 @@ function renderOverallRankings(teamsToShow) {
 
     const topRankingsHTML = sorted.map((team, index) => {
       const safeName = team.name.replace(/'/g, "\\'");
-      
-      // Use the national rank (team.rank) for the ranking number display
-      const rankText = `#${team.rank}`; 
-
+      const rankText = `#${team.rank}`;
       const scoreText = team.score.toFixed(1);
 
       return `<div class="ranking-item" 
@@ -1031,14 +940,13 @@ function renderOverallRankings(teamsToShow) {
     
     document.getElementById('topRankings').innerHTML = topRankingsHTML;
 
-    // Ensure the panel heading always says "Overall Team Rankings"
     const panelHeading = document.querySelector('#overallRankingsContent h3');
     panelHeading.textContent = 'Overall Team Rankings';
 }
 
 function populateStateFilter() {
     const select = document.getElementById('stateFilter');
-    select.innerHTML = '<option value="">Show All States</option>'; // Reset to default
+    select.innerHTML = '<option value="">Show All States</option>';
 
     const sortedCodes = Array.from(uniqueStateCodes).sort();
 
@@ -1052,7 +960,6 @@ function populateStateFilter() {
 }
 
 function handleStateFilter() {
-    // This function simply triggers the unified visibility update
     updateMapVisibility();
 }
 
@@ -1099,8 +1006,7 @@ function switchRankingView(view) {
 
     if (view === 'overall') {
         document.getElementById('overallRankingsContent').classList.remove('hidden');
-        // Re-apply visibility/filter logic when switching back to overall
-        updateMapVisibility(); 
+        updateMapVisibility();
     } else if (view === 'hs_circuit') {
         document.getElementById('hsCircuitRankingsContent').classList.remove('hidden');
     } else if (view === 'ms_circuit') {
@@ -1110,389 +1016,331 @@ function switchRankingView(view) {
     }
 }
 
-
 function makePopupHTML(teamObj) {
-  const row = teamObj.rawScoreRow || {};
-  const bestSetCol = teamObj.bestSetCol;
-  const bestSetVal = bestSetCol ? (row[bestSetCol] || '') : (row['Best Set'] || row['Set'] || '');
-  const rankText = teamObj.rank || '';
-  
-  let stateRankHTML = '';
-  if (teamObj.stateRank && teamObj.stateCode) {
-      // Include State Rank in the popup only, not the main ranking list
-      stateRankHTML = `<span class="popup-label">State Rank:</span><span class="popup-value">#${teamObj.stateRank} (${getCircuitFullName(teamObj.stateCode)})</span>`;
-  }
-
-  const popup = 
-    `<div class="popup-title">${teamObj.name}</div>
+    const row = teamObj.rawScoreRow || {};
+    const bestSetCol = teamObj.bestSetCol;
+    const bestSetVal = bestSetCol ? (row[bestSetCol] || '') : (row['Best Set'] || row['Set'] || '');
+    const rankText = teamObj.rank || '';
+    let stateRankHTML = '';
+    
+    if (teamObj.stateRank && teamObj.stateCode) {
+        stateRankHTML = `<span class="popup-label">State Rank:</span><span class="popup-value">#${teamObj.stateRank} (${getCircuitFullName(teamObj.stateCode)})</span>`;
+    }
+    
+    const popup = `
+    <div class="popup-title">${teamObj.name}</div>
     <div class="popup-stats">
-      <span class="popup-label">Score:</span><span class="score-badge">${teamObj.score.toFixed(1)}</span>
-      <span class="popup-label">Nat'l Rank:</span><span class="rank-badge">${rankText ? '#' + rankText : '—'}</span>
-      ${stateRankHTML} 
-      <span class="popup-label">Location:</span><span class="popup-value">${teamObj.location || '—'}</span>
-      <span class="popup-label">Best Set:</span><span class="popup-value">${bestSetVal || '—'}</span>
+       <span class="popup-label">Score:</span><span class="score-badge">${teamObj.score.toFixed(1)}</span>
+       <span class="popup-label">Nat'l Rank:</span><span class="rank-badge">${rankText ? '#' + rankText : '—'}</span>
+       ${stateRankHTML}
+       <span class="popup-label">Location:</span><span class="popup-value">${teamObj.location || '—'}</span>
+       <span class="popup-label">Best Set:</span><span class="popup-value">${bestSetVal || '—'}</span>
     </div>`;
-  return popup;
+    return popup;
 }
 
 function computeRadius(score, maxScore) {
-  const mode = document.getElementById('sizeMode')?.value || 'score';
-  let base;
-  
-  if (mode === 'uniform') {
-    base = 10000;
-  } else { 
-    base = 3000 + ((score / (maxScore || 1)) * 50000);
-  }
-  
-  return base * (radiusMultiplier || 1);
+    const mode = document.getElementById('sizeMode')?.value || 'score';
+    let base;
+    if (mode === 'uniform') {
+        base = 10000;
+    } else {
+        base = 3000 + ((score / (maxScore || 1)) * 50000);
+    }
+    return base * (radiusMultiplier || 1);
 }
 
 function updateSizes() {
-  const maxScore = Math.max(...allTeams.map(t=>t.score||0), 0);
-  circles.forEach(c => {
-    const newRadius = computeRadius(c.score, maxScore); 
-    c.circle.setRadius(newRadius);
-  });
+    const maxScore = Math.max(...allTeams.map(t=>t.score||0), 0);
+    circles.forEach(c => {
+        const newRadius = computeRadius(c.score, maxScore);
+        c.circle.setRadius(newRadius);
+    });
 }
 
 function handleRadiusSlider() {
-  const v = parseFloat(document.getElementById('radiusSlider').value);
-  radiusMultiplier = v;
-  document.getElementById('radiusVal').innerText = v.toFixed(1);
-  updateSizes();
+    const v = parseFloat(document.getElementById('radiusSlider').value);
+    radiusMultiplier = v;
+    document.getElementById('radiusVal').innerText = v.toFixed(1);
+    updateSizes();
 }
 
 function randomColor() {
-  const colors = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#06b6d4','#6366f1','#f43f5e','#14b8a6','#a855f7'];
-  return colors[Math.floor(Math.random()*colors.length)];
+    const colors = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#06b6d4','#6366f1','#f43f5e','#14b8a6','#a855f7'];
+    return colors[Math.floor(Math.random()*colors.length)];
 }
+
 function getColorByRank(rank, maxRank) {
-  rank = parseInt(rank) || 999999;
-  if (rank <= 10) return '#22c55e';
-  if (rank <= 50) return '#3b82f6';
-  if (rank <= 100) return '#8b5cf6';
-  if (rank <= 500) return '#f59e0b';
-  return '#ef4444';
+    rank = parseInt(rank) || 999999;
+    if (rank <= 10) return '#22c55e';
+    if (rank <= 50) return '#3b82f6';
+    if (rank <= 100) return '#8b5cf6';
+    if (rank <= 500) return '#f59e0b';
+    return '#ef4444';
 }
+
 function getColorByScore(score, maxScore) {
-  const ratio = (maxScore && score) ? score / maxScore : 0;
-  if (ratio > 0.8) return '#22c55e';
-  if (ratio > 0.6) return '#3b82f6';
-  if (ratio > 0.4) return '#8b5cf6';
-  if (ratio > 0.2) return '#f59e0b';
-  return '#ef4444';
+    const ratio = (maxScore && score) ? score / maxScore : 0;
+    if (ratio > 0.8) return '#22c55e';
+    if (ratio > 0.6) return '#3b82f6';
+    if (ratio > 0.4) return '#8b5cf6';
+    if (ratio > 0.2) return '#f59e0b';
+    return '#ef4444';
 }
+
 function updateColors() {
-  const scheme = document.getElementById('colorScheme').value;
-  const maxRank = Math.max(...allTeams.map(t => parseInt(t.rank) || 0));
-  const maxScore = Math.max(...allTeams.map(t => parseFloat(t.score) || 0));
-  circles.forEach(c => {
-    let color;
-    if (scheme === 'random') color = randomColor();
-    else if (scheme === 'rank') color = getColorByRank(c.rank, maxRank);
-    else if (scheme === 'score') color = getColorByScore(c.score, maxScore);
-    c.circle.setStyle({ color: color, fillColor: color });
-  });
+    const scheme = document.getElementById('colorScheme').value;
+    const maxRank = Math.max(...allTeams.map(t => parseInt(t.rank) || 0));
+    const maxScore = Math.max(...allTeams.map(t => parseFloat(t.score) || 0));
+    circles.forEach(c => {
+        let color;
+        if (scheme === 'random') color = randomColor();
+        else if (scheme === 'rank') color = getColorByRank(c.rank, maxRank);
+        else if (scheme === 'score') color = getColorByScore(c.score, maxScore);
+        c.circle.setStyle({ color: color, fillColor: color });
+    });
 }
 
 function togglePanel() {
-  document.getElementById('controlPanel').classList.toggle('hidden');
+    document.getElementById('controlPanel').classList.toggle('hidden');
 }
 
 function toggleRankingsPanel() {
-  const panel = document.getElementById('rankingsPanel');
-  panel.classList.toggle('hidden');
+    const panel = document.getElementById('rankingsPanel');
+    panel.classList.toggle('hidden');
 }
 
 function toggleDarkMode() {
-  const isDark = document.getElementById('darkMode').checked;
-  document.body.style.background = isDark ? '#0f172a' : '#f8fafc';
-  document.body.style.color = isDark ? '#e2e8f0' : '#0f172a';
-  const panels = document.querySelectorAll('.control-panel, .rankings-panel, .loading, #overlapPopover, #hoverTooltip');
-  panels.forEach(panel => {
+    const isDark = document.getElementById('darkMode').checked;
+    document.body.style.background = isDark ? '#0f172a' : '#f8fafc';
+    document.body.style.color = isDark ? '#e2e8f0' : '#0f172a';
+    const panels = document.querySelectorAll('.control-panel, .rankings-panel, .loading, #overlapPopover, #hoverTooltip');
+    panels.forEach(panel => {
+        if (isDark) {
+            panel.style.background = 'linear-gradient(135deg,#1e293b 0%,#0f172a 100%)';
+            panel.style.borderColor = 'rgba(59,130,246,0.3)';
+            panel.style.color = '#e2e8f0';
+        } else {
+            panel.style.background = 'linear-gradient(135deg,#ffffff 0%,#f1f5f9 100%)';
+            panel.style.borderColor = 'rgba(59,130,246,0.2)';
+            panel.style.color = '#0f172a';
+        }
+    });
     if (isDark) {
-      panel.style.background = 'linear-gradient(135deg,#1e293b 0%,#0f172a 100%)';
-      panel.style.borderColor = 'rgba(59,130,246,0.3)';
-      panel.style.color = '#e2e8f0';
+        document.getElementById('hoverTooltip').style.backgroundColor = 'rgba(15, 23, 42, 0.95)';
     } else {
-      panel.style.background = 'linear-gradient(135deg,#ffffff 0%,#f1f5f9 100%)';
-      panel.style.borderColor = 'rgba(59,130,246,0.2)';
-      panel.style.color = '#0f172a';
+        document.getElementById('hoverTooltip').style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
     }
-  });
-  // Special handling for hover tooltip background color which uses rgba
-  if (isDark) {
-      document.getElementById('hoverTooltip').style.backgroundColor = 'rgba(15, 23, 42, 0.95)';
-  } else {
-      document.getElementById('hoverTooltip').style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
-  }
-  
-  const headings = document.querySelectorAll('.control-panel h2, .rankings-panel h3, .filter-section h4');
-  headings.forEach(h => h.style.color = isDark ? '#60a5fa' : '#2563eb');
-  const labels = document.querySelectorAll('.control-group label, .popup-label, .checkbox-group label');
-  labels.forEach(l => l.style.color = isDark ? '#94a3b8' : '#475569');
-  const inputs = document.querySelectorAll('.control-group select, .control-group input, .checkbox-group label');
-  inputs.forEach(input => {
+    const headings = document.querySelectorAll('.control-panel h2, .rankings-panel h3, .filter-section h4');
+    headings.forEach(h => h.style.color = isDark ? '#60a5fa' : '#2563eb');
+    const labels = document.querySelectorAll('.control-group label, .popup-label, .checkbox-group label');
+    labels.forEach(l => l.style.color = isDark ? '#94a3b8' : '#475569');
+    const inputs = document.querySelectorAll('.control-group select, .control-group input, .checkbox-group label');
+    inputs.forEach(input => {
+        if (isDark) {
+            input.style.background = 'rgba(15,23,42,0.8)';
+            input.style.color = '#e2e8f0';
+            input.style.borderColor = 'rgba(59,130,246,0.3)';
+        } else {
+            input.style.background = 'white';
+            input.style.color = '#0f172a';
+            input.style.borderColor = 'rgba(59,130,246,0.3)';
+        }
+    });
+    const rankingTeams = document.querySelectorAll('.ranking-item .ranking-team');
+    rankingTeams.forEach(team => {
+        if (!team.parentElement.classList.contains('selected')) {
+            team.style.color = isDark ? '#e2e8f0' : '#1e293b';
+        }
+    });
+    const popupValues = document.querySelectorAll('.popup-value');
+    popupValues.forEach(val => {
+        val.style.color = isDark ? '#e2e8f0' : '#1e293b';
+    });
+    const circuitTableCells = document.querySelectorAll('.circuit-table');
+    circuitTableCells.forEach(table => {
+        table.style.color = isDark ? '#e2e8f0' : '#1e293b';
+    });
+    const circuitTableHeaders = document.querySelectorAll('.circuit-table th');
+    circuitTableHeaders.forEach(th => {
+        th.style.color = isDark ? '#60a5fa' : '#2563eb';
+    });
+    const popoverEl = document.getElementById('overlapPopover');
     if (isDark) {
-      input.style.background = 'rgba(15,23,42,0.8)';
-      input.style.color = '#e2e8f0';
-      input.style.borderColor = 'rgba(59,130,246,0.3)';
+        popoverEl.style.background = 'linear-gradient(135deg,#1e293b 0%,#0f172a 100%)';
+        popoverEl.style.borderColor = '#3b82f6';
+        popoverEl.style.color = '#e2e8f0';
     } else {
-      input.style.background = 'white';
-      input.style.color = '#0f172a';
-      input.style.borderColor = 'rgba(59,130,246,0.3)';
+        popoverEl.style.background = 'linear-gradient(135deg,#ffffff 0%,#f1f5f9 100%)';
+        popoverEl.style.borderColor = '#60a5fa';
+        popoverEl.style.color = '#0f172a';
     }
-  });
-
-  const rankingTeams = document.querySelectorAll('.ranking-item .ranking-team');
-  rankingTeams.forEach(team => {
-    // Only change team name color if not selected, selected color is always white
-    if (!team.parentElement.classList.contains('selected')) {
-        team.style.color = isDark ? '#e2e8f0' : '#1e293b';
-    }
-  });
-  
-  const popupValues = document.querySelectorAll('.popup-value');
-  popupValues.forEach(val => {
-      val.style.color = isDark ? '#e2e8f0' : '#1e293b'; 
-  });
-  
-  const circuitTableCells = document.querySelectorAll('.circuit-table');
-  circuitTableCells.forEach(table => {
-      table.style.color = isDark ? '#e2e8f0' : '#1e293b'; 
-  });
-  const circuitTableHeaders = document.querySelectorAll('.circuit-table th');
-  circuitTableHeaders.forEach(th => {
-      th.style.color = isDark ? '#60a5fa' : '#2563eb';
-  });
-
-  // Update popover background for dark mode consistency
-  const popoverEl = document.getElementById('overlapPopover');
-  if (isDark) {
-      popoverEl.style.background = 'linear-gradient(135deg,#1e293b 0%,#0f172a 100%)';
-      popoverEl.style.borderColor = '#3b82f6';
-      popoverEl.style.color = '#e2e8f0';
-  } else {
-      popoverEl.style.background = 'linear-gradient(135deg,#ffffff 0%,#f1f5f9 100%)';
-      popoverEl.style.borderColor = '#60a5fa';
-      popoverEl.style.color = '#0f172a';
-  }
-
-
-  createTileLayer(isDark);
+    createTileLayer(isDark);
 }
 
 function updateMapVisibility() {
-  const topX = document.getElementById('topX').value ? parseInt(document.getElementById('topX').value) : null;
-  const showHS = document.getElementById('gradeHS').checked;
-  const showMS = document.getElementById('gradeMS').checked;
-  const selectedState = document.getElementById('stateFilter').value;
-
-  // 1. Filter the allTeams array based on criteria
-  const filteredTeams = allTeams.filter(team => {
-    let passesFilter = true;
-    let rankNum = parseInt(team.rank);
-    let grade = team.rawScoreRow['Grade Level'] || ''; 
-
-    // A. Rank Filter
-    if (topX && rankNum && rankNum > topX) {
-        passesFilter = false;
-    }
-
-    // B. Grade Filter
-    // NOTE: This filter logic only applies when loading the combined (default) sheet. 
-    // When loading the MS-only or HS-only sheets, this filter ensures the display reflects the checklist state.
-    if (passesFilter) {
-        if (grade.toUpperCase().includes('HS') && !showHS) {
-            passesFilter = false;
-        } else if ((grade.toUpperCase().includes('MS') || grade.toUpperCase().includes('ES')) && !showMS) {
-            passesFilter = false;
-        } else if (!grade && (!showHS && !showMS)) { 
-            // If grade is unknown, hide it if user unchecked both
-            passesFilter = false;
-        }
-    }
-
-
-    // C. State Filter
-    if (passesFilter && selectedState) {
-        if (team.stateCode !== selectedState) {
-            passesFilter = false;
-        }
-    }
+    const topX = document.getElementById('topX').value ? parseInt(document.getElementById('topX').value) : null;
+    const showHS = document.getElementById('gradeHS').checked;
+    const showMS = document.getElementById('gradeMS').checked;
+    const selectedState = document.getElementById('stateFilter').value;
     
-    // Update marker visibility
-    const circleData = allTeams.find(c => c.name === team.name);
-    if (circleData) {
-        if (passesFilter) {
-            if (!markerLayerGroup.hasLayer(circleData.circleRef)) markerLayerGroup.addLayer(circleData.circleRef);
-            circleData.circleRef.setStyle({ opacity:1, fillOpacity:0.8 }); // Increased fill opacity slightly for better visibility
-            // Re-bind popup content to ensure the latest state rank (if applicable) is shown
-            circleData.circleRef.setPopupContent(makePopupHTML(team)); 
-        } else {
-            if (markerLayerGroup.hasLayer(circleData.circleRef)) markerLayerGroup.removeLayer(circleData.circleRef);
+    const filteredTeams = allTeams.filter(team => {
+        let passesFilter = true;
+        let rankNum = parseInt(team.rank);
+        let grade = team.rawScoreRow['Grade Level'] || '';
+        
+        if (topX && rankNum && rankNum > topX) {
+            passesFilter = false;
         }
+
+        if (passesFilter) {
+            if (grade.toUpperCase().includes('HS') && !showHS) {
+                passesFilter = false;
+            } else if ((grade.toUpperCase().includes('MS') || grade.toUpperCase().includes('ES')) && !showMS) {
+                passesFilter = false;
+            } else if (!grade && (!showHS && !showMS)) {
+                passesFilter = false;
+            }
+        }
+
+        if (passesFilter && selectedState) {
+            if (team.stateCode !== selectedState) {
+                passesFilter = false;
+            }
+        }
+
+        const circleData = allTeams.find(c => c.name === team.name);
+        if (circleData) {
+            if (passesFilter) {
+                if (!markerLayerGroup.hasLayer(circleData.circleRef)) markerLayerGroup.addLayer(circleData.circleRef);
+                circleData.circleRef.setStyle({ opacity:1, fillOpacity:0.8 });
+                circleData.circleRef.setPopupContent(makePopupHTML(team));
+            } else {
+                if (markerLayerGroup.hasLayer(circleData.circleRef)) markerLayerGroup.removeLayer(circleData.circleRef);
+            }
+        }
+
+        return passesFilter;
+    });
+    
+    if (document.getElementById('rankingViewSelect').value === 'overall') {
+        renderOverallRankings(filteredTeams);
     }
-
-    return passesFilter;
-  });
-
-  // 2. Update the Rankings List (only if Overall Rankings view is selected)
-  if (document.getElementById('rankingViewSelect').value === 'overall') {
-    // The teams list is filtered, but it will display the Global Rank due to the change in renderOverallRankings
-    renderOverallRankings(filteredTeams); 
-  }
 }
 
 function zoomToTeam(lat, lon, teamName) {
-  map.setView([lat, lon], 11);
-  setTimeout(() => {
-    // Find the circle in allTeams to ensure we get the reference
-    const team = allTeams.find(t => t.name === teamName);
-    if (team && team.circleRef) {
-      team.circleRef.openPopup();
+    map.setView([lat, lon], 11);
+    setTimeout(() => {
+        const team = allTeams.find(t => t.name === teamName);
+        if (team && team.circleRef) {
+            team.circleRef.openPopup();
+        }
+    }, 300);
+    const view = document.getElementById('rankingViewSelect').value;
+    if (view !== 'overall') return;
+    document.querySelectorAll('.ranking-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    const safeName = teamName.replace(/'/g, "\\'");
+    const rankItem = document.querySelector(`#topRankings .ranking-item[data-team-name="${safeName}"]`);
+    if (rankItem) {
+        rankItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        rankItem.classList.add('selected');
     }
-  }, 300);
-
-  const view = document.getElementById('rankingViewSelect').value;
-  if (view !== 'overall') return;
-
-  document.querySelectorAll('.ranking-item').forEach(item => {
-    item.classList.remove('selected');
-  });
-
-  const safeName = teamName.replace(/'/g, "\\'");
-  // Select item based on data attribute
-  const rankItem = document.querySelector(`#topRankings .ranking-item[data-team-name="${safeName}"]`);
-  
-  if (rankItem) {
-    rankItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    rankItem.classList.add('selected');
-  }
-
 }
 
-let searchTimeout = null;
 function handleSearchInput() {
-  const el = document.getElementById('teamSearch');
-  const q = el.value.trim().toLowerCase();
-  const suggestionsDiv = document.getElementById('suggestions');
-
-  document.querySelectorAll('.ranking-item.selected').forEach(item => {
-    item.classList.remove('selected');
-  });
-  // Dim non-matching circles during search
-  allTeams.forEach(t => {
-      if (t.circleRef && markerLayerGroup.hasLayer(t.circleRef)) {
-          if (t.name.toLowerCase().includes(q)) {
-              t.circleRef.setStyle({ opacity: 1, fillOpacity: 0.8 });
-          } else {
-              t.circleRef.setStyle({ opacity: 0.12, fillOpacity: 0.05 });
-          }
-      }
-  });
-
-
-  if (!q) {
-    suggestionsDiv.classList.add('hidden');
-    suggestionsDiv.innerHTML = '';
-    // Restore opacity when search is cleared
-    updateMapVisibility();
-    return;
-  }
-  
-  const matches = allTeams.filter(t => t.name.toLowerCase().includes(q));
-  
-  if (matches.length === 0) {
-    suggestionsDiv.classList.add('hidden');
-    suggestionsDiv.innerHTML = '';
-    return;
-  }
-  
-  const itemsHTML = matches.map(m => `<div class="suggestion-item" onclick="selectSuggestion('${m.name.replace(/'/g,"\\'")}')">${m.name}</div>`).join('');
-  suggestionsDiv.innerHTML = itemsHTML;
-  suggestionsDiv.classList.remove('hidden');
-
-  let first = true;
-  // Zoom to the first matching team
-  const firstMatch = matches[0];
-  if (firstMatch && firstMatch.circleRef) {
-      map.setView(firstMatch.circleRef.getLatLng(), 9);
-  }
-
-
-  const rect = el.getBoundingClientRect();
-  suggestionsDiv.style.left = (el.offsetLeft) + 'px';
-  suggestionsDiv.style.top = (el.offsetTop + el.offsetHeight + 6) + 'px';
-  suggestionsDiv.style.width = el.offsetWidth + 'px';
+    const el = document.getElementById('teamSearch');
+    const q = el.value.trim().toLowerCase();
+    const suggestionsDiv = document.getElementById('suggestions');
+    document.querySelectorAll('.ranking-item.selected').forEach(item => {
+        item.classList.remove('selected');
+    });
+    allTeams.forEach(t => {
+        if (t.circleRef && markerLayerGroup.hasLayer(t.circleRef)) {
+            if (t.name.toLowerCase().includes(q)) {
+                t.circleRef.setStyle({ opacity: 1, fillOpacity: 0.8 });
+            } else {
+                t.circleRef.setStyle({ opacity: 0.12, fillOpacity: 0.05 });
+            }
+        }
+    });
+    if (!q) {
+        suggestionsDiv.classList.add('hidden');
+        suggestionsDiv.innerHTML = '';
+        updateMapVisibility();
+        return;
+    }
+    const matches = allTeams.filter(t => t.name.toLowerCase().includes(q));
+    if (matches.length === 0) {
+        suggestionsDiv.classList.add('hidden');
+        suggestionsDiv.innerHTML = '';
+        return;
+    }
+    const itemsHTML = matches.map(m => `<div class="suggestion-item" onclick="selectSuggestion('${m.name.replace(/'/g,"\\")}')">${m.name}</div>`).join('');
+    suggestionsDiv.innerHTML = itemsHTML;
+    suggestionsDiv.classList.remove('hidden');
+    const firstMatch = matches[0];
+    if (firstMatch && firstMatch.circleRef) {
+        map.setView(firstMatch.circleRef.getLatLng(), 9);
+    }
+    const rect = el.getBoundingClientRect();
+    suggestionsDiv.style.left = (el.offsetLeft) + 'px';
+    suggestionsDiv.style.top = (el.offsetTop + el.offsetHeight + 6) + 'px';
+    suggestionsDiv.style.width = el.offsetWidth + 'px';
 }
 
 function selectSuggestion(name) {
-  document.getElementById('teamSearch').value = name;
-  document.getElementById('suggestions').classList.add('hidden');
-  document.getElementById('suggestions').innerHTML = '';
-  const team = allTeams.find(t => t.name === name);
-  if (team) zoomToTeam(team.lat, team.lon, team.name);
+    document.getElementById('teamSearch').value = name;
+    document.getElementById('suggestions').classList.add('hidden');
+    document.getElementById('suggestions').innerHTML = '';
+    const team = allTeams.find(t => t.name === name);
+    if (team) zoomToTeam(team.lat, team.lon, team.name);
 }
 
 document.addEventListener('click', (e) => {
-  const s = document.getElementById('suggestions');
-  if (s) {
-    const wrapper = document.querySelector('.search-wrapper');
-    if (!wrapper.contains(e.target)) {
-      s.classList.add('hidden');
+    const s = document.getElementById('suggestions');
+    if (s) {
+        const wrapper = document.querySelector('.search-wrapper');
+        if (!wrapper && !wrapper.contains(e.target)) {
+            s.classList.add('hidden');
+        } else if (wrapper && !wrapper.contains(e.target)) {
+            s.classList.add('hidden');
+        }
     }
-  }
 });
 
-function computeMaxScore() {
-  return Math.max(...allTeams.map(t => t.score || 0), 0);
-}
-
 window.addEventListener('resize', () => {
-  const el = document.getElementById('teamSearch');
-  const s = document.getElementById('suggestions');
-  if (s && !s.classList.contains('hidden')) {
-    s.style.left = el.offsetLeft + 'px';
-    s.style.top = (el.offsetTop + el.offsetHeight + 6) + 'px';
-  }
-  // Re-run popover positioning if a popup is currently open
-  const openPopup = document.querySelector('.leaflet-popup');
-  if (openPopup) {
-      // Find the source circle (this is complicated, but a simple way is to re-trigger the handler)
-      // Since we don't have the event object, we can only re-hide or assume the last team is open.
-      // Better to just call hide and let the user re-open it to ensure correct positioning.
-      hideNearbyTeamsPanel();
-  }
+    const el = document.getElementById('teamSearch');
+    const s = document.getElementById('suggestions');
+    if (s && !s.classList.contains('hidden')) {
+        s.style.left = el.offsetLeft + 'px';
+        s.style.top = (el.offsetTop + el.offsetHeight + 6) + 'px';
+    }
+    const openPopup = document.querySelector('.leaflet-popup');
+    if (openPopup) {
+        hideNearbyTeamsPanel();
+    }
 });
 
 document.getElementById('radiusVal').innerText = document.getElementById('radiusSlider').value;
 
 function calculateStateRanks() {
-  const teamsByState = {};
-
-  allTeams.forEach(team => {
-    let state = team.stateCode; // Use the extracted state code
-    
-    if (state) {
-      if (!teamsByState[state]) teamsByState[state] = [];
-      teamsByState[state].push(team);
-    }
-  });
-
-  Object.keys(teamsByState).forEach(state => {
-    // Sort teams within the state by score (descending)
-    teamsByState[state].sort((a, b) => b.score - a.score);
-    
-    // Assign state rank
-    teamsByState[state].forEach((team, index) => {
-      team.stateRank = index + 1;
-      // team.stateCode is already set
+    const teamsByState = {};
+    allTeams.forEach(team => {
+        let state = team.stateCode;
+        if (state) {
+            if (!teamsByState[state]) teamsByState[state] = [];
+            teamsByState[state].push(team);
+        }
     });
-  });
+    Object.keys(teamsByState).forEach(state => {
+        teamsByState[state].sort((a, b) => b.score - a.score);
+        teamsByState[state].forEach((team, index) => {
+            team.stateRank = index + 1;
+        });
+    });
 }
 </script>
-
 </body>
 </html>
