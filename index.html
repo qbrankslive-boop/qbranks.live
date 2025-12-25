@@ -408,8 +408,6 @@
     <label>Ranking View</label>
     <select id="rankingViewSelect" onchange="switchRankingView(this.value)">
         <option value="overall">Overall Team Rankings</option>
-        <option value ="overallnaqt">NAQT Rankings </option>
-        <option value ="overallmacf">mACF Rankings </option>
         <option value="hs_circuit">HS State Rankings</option>
         <option value="ms_circuit">MS State Rankings</option>
         <option value="accolades">Accolades</option>
@@ -420,17 +418,6 @@
       <h3>Overall Team Rankings</h3>
       <div id="topRankings"></div>
   </div>
-  
-  <div id="overallNAQTContent" class="hidden">
-      <h3>Overall Team Rankings</h3>
-      <div id="overallNAQT"></div>
-  </div>
-
-  <div id="overallmACFContent" class="hidden">
-      <h3>Overall mACF Rankings</h3>
-      <div id="overallmACF"></div>
-  </div>
-
 
   <div id="hsCircuitRankingsContent" class="hidden">
       <h3>HS State Rankings</h3>
@@ -449,7 +436,7 @@
 
 </div>
 
-<div id="loading" class="loading">Site down until 4:00 PM PST - Merry Christmas!</div>
+<div id="loading" class="loading">Loading Quizbowl Data...</div>
 
 <div id="map"></div>
 <!-- Custom panel element for nearby schools list (Repurposed from #overlapPopover) -->
@@ -459,14 +446,18 @@
 
 
 <script>
+/* ---------- Config / sheet links ---------- */
+// **CHANGE THIS TO YOUR ACTUAL SHEET ID**
 const SHEET_ID = "1ZiV-l0X4Hlvice0GX7CJZ5YGlXodMcdCNRGVanVzlaA"; 
 const LOCATION_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Location%20Data`;
+// default overall sheet (all)
 const OVERALL_SHEET_DEFAULT = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Overall`;
+// HS-only and MS-only based on user-provided gids:
 const OVERALL_SHEET_HS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=39357228`;
 const OVERALL_SHEET_MS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1050804017`;
-const NAQT_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=81041869`
-const mACF_SHEET= `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=2002621808`
 
+/* ---------- Static Circuit and Accolade Data ---------- */
+// Utility function to convert 2-letter codes to full names
 function getCircuitFullName(code) {
     const map = {
         'MA': 'Massachusetts', 'IL': 'Illinois', 'TX': 'Texas', 'GA': 'Georgia', 'CA': 'California',
@@ -478,7 +469,7 @@ function getCircuitFullName(code) {
         'DC': 'District of Columbia', 'ME': 'Maine', 'NH': 'New Hampshire', 'MS': 'Mississippi',
         'WV': 'West Virginia', 'ON': 'Ontario (Canada)', 'NM': 'New Mexico', 'WI': 'Wisconsin',
         'CR': 'Costa Rica', 'AB': 'Alberta (Canada)', 'ROK': 'South Korea', 'NV': 'Nevada',
-        'South Korea': 'South Korea'
+        'South Korea': 'South Korea' // Ensure non-code values pass through
     };
     return map[code] || code;
 }
@@ -622,17 +613,21 @@ function clearData() {
   uniqueStateCodes.clear(); // Clear state codes
 }
 
+/* ---------- get proper overall sheet URL based on grade toggles ---------- */
 function getOverallURL() {
   const hs = document.getElementById('gradeHS').checked;
   const ms = document.getElementById('gradeMS').checked;
   // If both checked or both unchecked -> show combined (default)
-  if ((hs && ms) || (!hs && !ms)|| return OVERALL_SHEET_DEFAULT;
-  if (hs && !ms) return OVERALL_SHEET_HS;  
+  if ((hs && ms) || (!hs && !ms)) return OVERALL_SHEET_DEFAULT;
+  if (hs && !ms) return OVERALL_SHEET_HS;
+  
+  // Logic fix: Should be !hs && ms for MS only
   if (!hs && ms) return OVERALL_SHEET_MS; 
   
   return OVERALL_SHEET_DEFAULT; // Fallback to default
 }
 
+/* ---------- reload data when grade toggles change ---------- */
 function handleGradeToggle() {
   // reload dataset according to selected grade(s)
   refreshData();
@@ -815,7 +810,7 @@ async function loadData() {
         const missingListHTML = teamsMissingLocationGlobal.map(name => `<li>${name}</li>`).join('');
 
         statsHTML += `<br>
-            <span style="color: #f97316; font-weight: bold;"> ${teamsMissingLocationGlobal.length} missing location data!</span>
+            <span style="color: #f97316; font-weight: bold;">⚠️ ${teamsMissingLocationGlobal.length} missing location data!</span>
             <ul class="missing-teams-list">
                 ${missingListHTML}
             </ul>
