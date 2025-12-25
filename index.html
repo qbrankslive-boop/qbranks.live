@@ -1054,7 +1054,7 @@ function computeRadius(score, maxScore) {
     
     // Zoom scaling factor: lower value at higher zoom to keep circles visually small
     // At zoom 4 (world), scale is ~1. At zoom 10 (city), scale is ~0.1
-    const zoomScale = Math.pow(2, 4 - zoom);
+    const zoomScale = Math.pow(1.5, 4 - zoom);
     
     let base;
     if (mode === 'uniform') {
