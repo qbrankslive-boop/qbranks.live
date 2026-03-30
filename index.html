@@ -550,7 +550,6 @@ window.addEventListener('load', function() {
   map.on('popupopen', handlePopupOpen);
   map.on('popupclose', hideNearbyTeamsPanel);
 
-  // New: Listen for zoom changes to rescale circles
   map.on('zoomend', function() {
     updateSizes();
   });
@@ -569,9 +568,18 @@ function loadCSV(url) {
   return new Promise((resolve, reject) => {
     Papa.parse(url, {
       download: true,
-      header: true,
+      header: false,
       skipEmptyLines: true,
-      complete: (results) => resolve(results.data),
+      complete: (results) => {
+        const headers = results.data[0];
+        const rows = results.data.slice(1);
+        const objects = rows.map(row => {
+          const obj = {};
+          headers.forEach((h, i) => { obj[h] = row[i]; });
+          return obj;
+        });
+        resolve(objects);
+      },
       error: (err) => reject(err)
     });
   });
@@ -639,6 +647,14 @@ async function loadData() {
     console.log('Loading:', locUrl, overallUrl);
 
     const [locData, scoreData] = await Promise.all([ loadCSV(locUrl), loadCSV(overallUrl) ]);
+    console.log(scoreData[0], scoreData[1], scoreData[2], scoreData[3]);
+    window._debug = scoreData;
+    const cleanedScoreData = scoreData.filter(row => {
+    const firstVal = String(Object.values(row)[0] || '').trim();
+    return firstVal !== '' && !isNaN(parseInt(firstVal));
+    console.log(scoreData[0])
+
+});
 
     const isOverallType = (overallUrl === OVERALL_SHEET || overallUrl === OVERALL_NAQT_SHEET || overallUrl === OVERALL_MACF_SHEET);
     
@@ -668,7 +684,7 @@ async function loadData() {
         if (name) locationMap[name] = row;
     }
     let maxScore = 0;
-    for (const row of scoreData) {
+    for (const row of cleanedScoreData) {
       const s = parseFloat(row[scoreColumnName]);
       if (!isNaN(s)) maxScore = Math.max(maxScore, s);
     }
@@ -676,7 +692,7 @@ async function loadData() {
     let teamsMissingLocation = [];
     let tempStateCodes = new Set();
 
-    for (const scoreRow of scoreData) {
+    for (const scoreRow of cleanedScoreData) {
         const name = String(scoreRow[teamColumnName] || '').trim();
         if (!name) continue;
 
@@ -1036,7 +1052,7 @@ function makePopupHTML(teamObj) {
     <div class="popup-title">${teamObj.name}</div>
     <div class="popup-stats">
        <span class="popup-label">Score:</span><span class="score-badge">${teamObj.score.toFixed(1)}</span>
-       <span class="popup-label">Nat'l Rank:</span><span class="rank-badge">${rankText ? '#' + rankText : '—'}</span>
+       <span class="popup-label">Global Rank:</span><span class="rank-badge">${rankText ? '#' + rankText : '—'}</span>
        ${stateRankHTML}
        <span class="popup-label">Location:</span><span class="popup-value">${teamObj.location || '—'}</span>
        <span class="popup-label">Best Set:</span><span class="popup-value">${bestSetVal || '—'}</span>
@@ -1044,23 +1060,16 @@ function makePopupHTML(teamObj) {
     return popup;
 }
 
-/**
- * Updated: computeRadius now factors in current zoom level.
- * As zoom increases (closer in), the base radius factor decreases.
- */
 function computeRadius(score, maxScore) {
     const mode = document.getElementById('sizeMode')?.value || 'score';
     const zoom = map ? map.getZoom() : 4;
     
-    // Zoom scaling factor: lower value at higher zoom to keep circles visually small
-    // At zoom 4 (world), scale is ~1. At zoom 10 (city), scale is ~0.1
     const zoomScale = Math.pow(1.5, 4 - zoom);
     
     let base;
     if (mode === 'uniform') {
         base = 10000;
     } else {
-        // Base range: 3km to 53km depending on score
         base = 3000 + ((score / (maxScore || 1)) * 50000);
     }
     
