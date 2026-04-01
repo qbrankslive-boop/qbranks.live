@@ -302,6 +302,8 @@
         transition: opacity 0.1s ease-in-out;
         opacity: 0;
     }
+
+
   </style>
 </head>
 <body>
@@ -389,6 +391,20 @@
     </div>
   </div>
 
+  <!-- Small School Ranks Section -->
+  <div class="filter-section">
+    <h4>Small School Ranks</h4>
+    <div class="control-group">
+      <label>Division</label>
+      <select id="ssnctDivision" onchange="refreshData()" style="border-color: rgba(16,185,129,0.4);">
+        <option value="">— None —</option>
+        <option value="tpe">Traditional Public Schools</option>
+        <option value="vss">Very Small Schools</option>
+        <option value="open">Open</option>
+      </select>
+    </div>
+  </div>
+
   <div class="stats-summary" id="statsSummary">
     <strong>Loading data...</strong>
   </div>
@@ -443,6 +459,19 @@ const HS_MACF_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/t
 const MS_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1050804017`;
 const MS_NAQT_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=566842992`;
 const MS_MACF_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1791150640`;
+
+// SSNCT sheet URLs — replace sheet name strings with the actual sheet names from the spreadsheet
+const SSNCT_TPE_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=SSNCT%20(TPE)`;
+const SSNCT_VSS_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=SSNCT%20(VSS)`;
+const SSNCT_OPEN_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=SSNCT%20(Open)`;
+
+const SSNCT_SHEET_MAP = {
+  tpe: SSNCT_TPE_SHEET,
+  vss: SSNCT_VSS_SHEET,
+  open: SSNCT_OPEN_SHEET
+};
+
+
 
 function getCircuitFullName(code) {
     const map = {
@@ -536,6 +565,8 @@ let uniqueStateCodes = new Set();
 const nearbyTeamsPanel = document.getElementById('overlapPopover');
 const hoverTooltip = document.getElementById('hoverTooltip');
 
+
+
 window.addEventListener('load', function() {
   map = L.map('map').setView([39, -95], 4);
   currentTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -554,6 +585,8 @@ window.addEventListener('load', function() {
     updateSizes();
   });
 });
+
+
 
 function createTileLayer(isDark) {
   if (currentTileLayer) { map.removeLayer(currentTileLayer); }
@@ -603,6 +636,10 @@ function clearData() {
 }
 
 function getOverallURL() {
+  // SSNCT filter takes priority over all other filters
+  const ssnct = document.getElementById('ssnctDivision').value;
+  if (ssnct) return SSNCT_SHEET_MAP[ssnct];
+
   const hs = document.getElementById('gradeHS').checked;
   const ms = document.getElementById('gradeMS').checked;
   const naqt = document.getElementById('setNAQT').checked;
@@ -656,7 +693,8 @@ async function loadData() {
 
 });
 
-    const isOverallType = (overallUrl === OVERALL_SHEET || overallUrl === OVERALL_NAQT_SHEET || overallUrl === OVERALL_MACF_SHEET);
+    const SSNCT_URLS = Object.values(SSNCT_SHEET_MAP);
+    const isOverallType = (overallUrl === OVERALL_SHEET || overallUrl === OVERALL_NAQT_SHEET || overallUrl === OVERALL_MACF_SHEET || SSNCT_URLS.includes(overallUrl));
     
     let teamColumnName, rankColumnName, scoreColumnName, bestSetColumnName, bestTournColumnName;
     
