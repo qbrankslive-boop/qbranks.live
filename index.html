@@ -7,448 +7,1279 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"> 
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body { 
-        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif; 
-        overflow: hidden; 
-        background: #0f172a; 
-        color: #e2e8f0; 
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-base:       #080c14;
+      --bg-surface:    #0d1424;
+      --bg-elevated:   #121c30;
+      --bg-highlight:  #182338;
+      --border-subtle: rgba(255,255,255,0.06);
+      --border-soft:   rgba(255,255,255,0.10);
+      --border-active: rgba(59,130,246,0.45);
+      --text-primary:  #f0f4ff;
+      --text-secondary:#8b9ab8;
+      --text-muted:    #4d5d78;
+      --accent-blue:   #3b82f6;
+      --accent-blue-lt:#60a5fa;
+      --accent-pink:   #ec4899;
+      --accent-violet: #8b5cf6;
+      --accent-amber:  #f59e0b;
+      --accent-green:  #22c55e;
+      --accent-teal:   #14b8a6;
+      --radius-sm:     6px;
+      --radius-md:     10px;
+      --radius-lg:     14px;
+      --shadow-panel:  0 8px 32px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.04) inset;
+      --font-body:     'DM Sans', system-ui, sans-serif;
+      --font-mono:     'DM Mono', monospace;
+      --panel-w:       288px;
+      --panel-gap:     16px;
+    }
+
+    body {
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.5;
+      overflow: hidden;
+      background: var(--bg-base);
+      color: var(--text-primary);
     }
 
     #map { height: 100vh; width: 100vw; }
-    .leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); background: linear-gradient(135deg,#1e293b 0%,#0f172a 100%); border: 1px solid rgba(59,130,246,0.3); }
-    .leaflet-popup-content { margin: 20px; font-size: 14px; line-height: 1.6; color: #e2e8f0; }
-    .leaflet-popup-tip { background: #1e293b; }
-    .popup-title { font-size: 20px; font-weight: bold; color: #60a5fa; margin-bottom: 12px; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; text-shadow: 0 0 10px rgba(59,130,246,0.5); }
-    .popup-stats { display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; margin-top: 12px; }
-    .popup-label { font-weight: 600; color: #94a3b8; }
-    .popup-value { color: #e2e8f0; }
-    .rank-badge { display:inline-block; background:linear-gradient(135deg,#8b5cf6 0%,#6366f1 100%); color:white; padding:5px 12px; border-radius:14px; font-weight:bold; font-size:13px; box-shadow: 0 2px 8px rgba(139,92,246,0.4); }
-    .score-badge { display:inline-block; background:linear-gradient(135deg,#ec4899 0%,#f97316 100%); color:white; padding:5px 12px; border-radius:14px; font-weight:bold; font-size:13px; box-shadow:0 2px 8px rgba(236,72,153,0.4); }
-    
-    .control-panel { 
-        position: absolute; top: 20px; left: 70px; 
-        background: linear-gradient(135deg,#1e293b 0%,#0f172a 100%); 
-        padding: 20px; 
-        border-radius: 12px; 
-        box-shadow: 0 6px 24px rgba(0,0,0,0.5); 
-        z-index:1000; 
-        max-width: 300px; 
-        max-height: 95vh;
-        overflow-y: auto;
-        border: 1px solid rgba(59,130,246,0.3); 
-        backdrop-filter: blur(10px); 
-        color: #e2e8f0; 
-        transition: all 0.3s ease;
+
+    .leaflet-popup-content-wrapper {
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-panel);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-active);
+      padding: 0;
+    }
+    .leaflet-popup-content {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-primary);
+    }
+    .leaflet-popup-tip-container { margin-top: -1px; }
+    .leaflet-popup-tip { background: var(--bg-elevated); }
+    .leaflet-popup-close-button {
+      color: var(--text-secondary) !important;
+      font-size: 18px !important;
+      top: 10px !important;
+      right: 12px !important;
     }
 
-    .control-panel::-webkit-scrollbar { width: 6px; }
-    .control-panel::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); border-radius: 3px; }
-    .control-panel::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 3px; }
-    .control-panel::-webkit-scrollbar-thumb:hover { background: #60a5fa; }
+    .popup-inner { padding: 18px 20px 20px; }
+    .popup-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      letter-spacing: -0.01em;
+    }
+    .popup-description {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed var(--border-soft);
+        font-size: 12px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        font-style: italic;
+        }
+    
+    .popup-stats {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px 14px;
+    }
+    .popup-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      line-height: 24px;
+    }
+    .popup-value {
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 24px;
+    }
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(139,92,246,0.15);
+      color: #a78bfa;
+      border: 1px solid rgba(139,92,246,0.3);
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+    .score-badge {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(236,72,153,0.12);
+      color: #f472b6;
+      border: 1px solid rgba(236,72,153,0.28);
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+    .popup-predict-btn {
+      margin-top: 12px;
+      width: 100%;
+      padding: 7px 12px;
+      background: rgba(59,130,246,0.12);
+      border: 1px solid rgba(59,130,246,0.3);
+      border-radius: var(--radius-sm);
+      color: var(--accent-blue-lt);
+      font-size: 12px;
+      font-weight: 500;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .popup-predict-btn:hover {
+      background: rgba(59,130,246,0.22);
+      border-color: rgba(59,130,246,0.55);
+    }
 
-    .control-panel h2 { margin:0 0 15px 0; font-size:22px; color:#60a5fa; border-bottom:3px solid #3b82f6; padding-bottom:8px; }
+    .panel-base {
+      position: absolute;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-panel);
+      z-index: 1000;
+      color: var(--text-primary);
+      overflow: hidden;
+    }
+
+    .control-panel {
+      top: var(--panel-gap);
+      left: calc(44px + var(--panel-gap) * 2);
+      width: var(--panel-w);
+      max-height: calc(100vh - var(--panel-gap) * 2);
+      overflow-y: auto;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .control-panel.hidden {
+      display: none;
+    }
+    .control-panel::-webkit-scrollbar { width: 4px; }
+    .control-panel::-webkit-scrollbar-track { background: transparent; }
+    .control-panel::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 4px; }
+
+    .panel-header {
+      padding: 16px 18px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      background: var(--bg-surface);
+      z-index: 1;
+    }
+    .panel-header h2 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+    .panel-header h2 span {
+      color: var(--accent-blue);
+    }
+
+    .panel-body { padding: 12px 0 8px; }
+
+    .filter-section {
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .filter-section:last-child { border-bottom: none; }
+    .filter-section h4 {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
     .control-group { margin-bottom: 10px; }
-    .control-group label { display:block; font-weight:600; margin-bottom:6px; color:#94a3b8; font-size:13px; }
-    .control-group select, .control-group input { width:100%; padding:8px 12px; border:2px solid rgba(59,130,246,0.3); border-radius:6px; font-size:13px; transition:all 0.3s; background: rgba(15,23,42,0.8); color: #e2e8f0; }
-    .control-group select:focus, .control-group input:focus { outline:none; border-color:#3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
-    .control-group input::placeholder { color:#64748b; }
-    
-    .stats-summary { 
-        background: linear-gradient(135deg,#8b5cf6 0%,#6366f1 100%); 
-        color:white; 
-        padding:12px; 
-        border-radius:8px; 
-        margin-top:15px; 
-        font-size:13px; 
-        line-height:1.6; 
-        box-shadow:0 4px 12px rgba(139,92,246,0.4); 
+    .control-group:last-child { margin-bottom: 0; }
+    .control-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
     }
-    .stats-summary strong { font-size:16px; }
+    .control-group select,
+    .control-group input[type="text"],
+    .control-group input[type="number"] {
+      width: 100%;
+      padding: 7px 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-family: var(--font-body);
+      color: var(--text-primary);
+      transition: border-color 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .control-group select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%234d5d78' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+    .control-group select:focus,
+    .control-group input[type="text"]:focus,
+    .control-group input[type="number"]:focus {
+      outline: none;
+      border-color: var(--border-active);
+    }
+    .control-group input::placeholder { color: var(--text-muted); }
+    .control-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent-blue);
+      cursor: pointer;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .checkbox-group:last-child { margin-bottom: 0; }
+    .checkbox-group input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      accent-color: var(--accent-blue);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .checkbox-group label {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      cursor: pointer;
+      margin: 0;
+    }
+
+    #ssnctDivision { border-color: rgba(16,185,129,0.3); }
+    #ssnctDivision:focus { border-color: rgba(16,185,129,0.6); }
+
+    .stats-summary {
+      margin: 10px 18px 14px;
+      padding: 12px 14px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      line-height: 1.8;
+      color: var(--text-secondary);
+    }
+    .stats-summary strong {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
     .missing-teams-list {
-        margin-top: 8px;
-        padding: 5px;
-        background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 4px;
-        font-size: 11px;
-        list-style: none;
-        padding-left: 10px;
-        border-left: 3px solid #f97316;
-        color: #fef3c7;
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: rgba(249,115,22,0.08);
+      border-left: 2px solid var(--accent-amber);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      list-style: none;
+      color: #fbbf24;
     }
     .missing-teams-list li {
-        margin-bottom: 2px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    #toggleSettings { 
-        position:absolute; 
-        top:20px; 
-        left:20px; 
-        background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%); 
-        border:none; 
-        padding:10px 14px; 
-        border-radius:8px; 
-        cursor:pointer; 
-        font-size:18px; 
-        color:white; 
-        box-shadow:0 4px 12px rgba(59,130,246,0.4); 
-        z-index:1001; 
-        transition:all 0.3s; 
+    #toggleSettings,
+    #toggleRankings,
+    #btnTools {
+      position: absolute;
+      top: var(--panel-gap);
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1001;
+      transition: background 0.15s, border-color 0.15s;
+      backdrop-filter: blur(8px);
+    }
+    #toggleSettings {
+      left: var(--panel-gap);
+      background: var(--bg-surface);
+      color: var(--accent-blue-lt);
+    }
+    #toggleSettings:hover { background: var(--bg-elevated); border-color: var(--border-active); }
+
+    #toggleRankings {
+      right: var(--panel-gap);
+      background: var(--bg-surface);
+      color: #f472b6;
+    }
+    #toggleRankings:hover { background: var(--bg-elevated); border-color: rgba(236,72,153,0.4); }
+
+    #btnTools {
+      top: calc(var(--panel-gap) + 44px);
+      left: var(--panel-gap);
+      background: var(--bg-surface);
+      color: var(--accent-teal);
+      font-size: 15px;
+    }
+    #btnTools:hover { background: var(--bg-elevated); border-color: rgba(20,184,166,0.5); }
+    #btnTools.active { background: rgba(20,184,166,0.12); border-color: rgba(20,184,166,0.5); }
+
+    .rankings-panel {
+      top: var(--panel-gap);
+      right: calc(44px + var(--panel-gap) * 2);
+      width: 272px;
+      max-height: calc(100vh - var(--panel-gap) * 2);
+      overflow-y: auto;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .rankings-panel.hidden { display: none; }
+    .rankings-panel::-webkit-scrollbar { width: 4px; }
+    .rankings-panel::-webkit-scrollbar-track { background: transparent; }
+    .rankings-panel::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 4px; }
+
+    .rankings-panel h3 {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
-    #toggleRankings { 
-        position: absolute; 
-        top: 20px; 
-        right: 20px; 
-        background: linear-gradient(135deg,#ec4899 0%,#f97316 100%); 
-        border: none; 
-        padding: 10px 14px; 
-        border-radius: 8px; 
-        cursor: pointer; 
-        font-size: 18px; 
-        color: white; 
-        box-shadow: 0 4px 12px rgba(236,72,153,0.4); 
-        z-index: 1001; 
-        transition: all 0.3s;
+    #rankingViewSelect {
+      width: calc(100% - 32px);
+      margin: 12px 16px 0;
+      padding: 7px 28px 7px 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-family: var(--font-body);
+      color: var(--text-primary);
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%234d5d78' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      cursor: pointer;
     }
+    #rankingViewSelect:focus { outline: none; border-color: var(--border-active); }
 
-    .rankings-panel { 
-        position:absolute; 
-        top:70px; 
-        right:20px; 
-        background: linear-gradient(135deg,#1e293b 0%,#0f172a 100%); 
-        padding:18px; 
-        border-radius:10px; 
-        box-shadow:0 6px 24px rgba(0,0,0,0.5); 
-        z-index:1000; 
-        max-width:300px; 
-        max-height:80vh; 
-        overflow-y:auto; 
-        border: 1px solid rgba(59,130,246,0.3); 
-        color:#e2e8f0; 
-        transition: all 0.3s ease;
+    .ranking-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background 0.1s;
+      border-bottom: 1px solid var(--border-subtle);
     }
-
-    .rankings-panel h3 { margin:0 0 12px 0; font-size:16px; color:#60a5fa; border-bottom:2px solid #3b82f6; padding-bottom:6px; }
-    
-    .ranking-item { 
-        display:flex; justify-content:space-between; align-items:center; 
-        padding:8px; margin-bottom:6px; 
-        background: rgba(59,130,246,0.06); border-radius:6px; 
-        cursor:pointer; transition:all 0.1s; 
-        border:1px solid transparent; color:#e2e8f0; 
+    .ranking-item:last-child { border-bottom: none; }
+    .ranking-item:hover { background: var(--bg-highlight); }
+    .ranking-item.selected {
+      background: rgba(59,130,246,0.12);
+      border-color: transparent;
     }
-    .ranking-item:hover { background: rgba(59,130,246,0.12); border-color:#3b82f6; transform: translateX(3px); }
-    
-    .ranking-item.selected { 
-        background: linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%); 
-        color: white !important; 
-        font-weight: bold; 
-        box-shadow: 0 4px 10px rgba(59,130,246,0.6);
+    .ranking-number {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      min-width: 28px;
     }
-    .ranking-item.selected .ranking-team,
-    .ranking-item.selected .ranking-number,
-    .ranking-item.selected .ranking-score {
-        color: white !important; 
+    .ranking-item.selected .ranking-number { color: var(--accent-blue-lt); }
+    .ranking-team {
+      flex: 1;
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-
-    .ranking-number { font-weight:bold; color:#60a5fa; font-size:14px; min-width:25px; }
-    .ranking-team { flex:1; margin:0 8px; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .ranking-score { font-weight:bold; color:#ec4899; font-size:13px; }
-    .filter-section { margin-bottom:10px; padding:10px; background: rgba(59,130,246,0.06); border-radius:6px; border:1px solid rgba(59,130,246,0.08); }
-    .filter-section h4 { margin:0 0 8px 0; font-size:13px; color:#60a5fa; font-weight:600; }
-    .checkbox-group { display:flex; align-items:center; margin-bottom:6px; }
-    .checkbox-group input[type="checkbox"] { margin-right:6px; width:16px; height:16px; cursor:pointer; }
-    .checkbox-group label { margin:0; cursor:pointer; color:#cbd5e1; font-size:12px; }
-    .rankings-panel::-webkit-scrollbar { width:6px; }
-    .rankings-panel::-webkit-scrollbar-track { background: rgba(15,23,42,0.5); border-radius:3px; }
-    .rankings-panel::-webkit-scrollbar-thumb { background: #3b82f6; border-radius:3px; }
-    .rankings-panel::-webkit-scrollbar-thumb:hover { background: #60a5fa; }
-    
-    .suggestions { 
-        position: absolute; 
-        z-index: 1500; 
-        background: linear-gradient(135deg,#fff 0%,#f1f5f9 100%); 
-        border-radius:6px; 
-        border:1px solid rgba(59,130,246,0.2); 
-        overflow: hidden; 
-        max-height: 200px; 
-        overflow-y: auto; 
-        box-shadow:0 8px 20px rgba(0,0,0,0.2); 
+    .ranking-item.selected .ranking-team { color: var(--text-primary); font-weight: 500; }
+    .ranking-score {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
     }
-    .suggestions::-webkit-scrollbar { width: 6px; }
-    .suggestions::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 3px; }
-    .suggestions::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
-    .suggestions::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    .ranking-item.selected .ranking-score { color: #f472b6; }
 
-    .suggestion-item { padding:6px 10px; cursor:pointer; font-size:13px; color:#0f172a; border-bottom:1px solid rgba(0,0,0,0.05); }
-    .suggestion-item:hover { background: rgba(59,130,246,0.08); color:#0f172a; }
-    .search-wrapper { position: relative; }
-
-    .loading { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%); padding:30px 50px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.5); z-index:2000; font-size:18px; font-weight:bold; color:#60a5fa; border:1px solid rgba(59,130,246,0.3); animation:pulse 2s ease-in-out infinite; }
-    @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.7 } }
-    .hidden { display:none; }
-
-    .circuit-table { 
-        width: 100%; 
-        border-collapse: collapse; 
-        font-size: 12px;
-        color: #e2e8f0;
+    .circuit-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      color: var(--text-secondary);
     }
     .circuit-table th {
-        padding: 6px 4px;
-        text-align: left;
-        color: #60a5fa;
-        border-bottom: 2px solid #3b82f6;
+      padding: 8px 16px 6px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle);
     }
     .circuit-table td {
-        padding: 5px 4px;
-        border-bottom: 1px solid rgba(59,130,246,0.1);
-        white-space: nowrap;
+      padding: 7px 16px;
+      border-bottom: 1px solid var(--border-subtle);
     }
-    .circuit-table td:nth-child(2) {
-        font-weight: 600;
+    .circuit-table tr:last-child td { border-bottom: none; }
+    .circuit-table td:first-child {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      width: 28px;
+    }
+    .circuit-table td:nth-child(2) { font-weight: 500; color: var(--text-primary); }
+    .circuit-table td:nth-child(3) {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-blue-lt);
+      text-align: right;
     }
 
     .accolade-item {
-        padding: 8px 0;
-        line-height: 1.4;
-        font-size: 13px;
-        border-bottom: 1px solid rgba(59,130,246,0.3);
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border-subtle);
     }
-    .accolade-item:last-child {
-        border-bottom: none;
-    }
+    .accolade-item:last-child { border-bottom: none; }
     .accolade-title {
-        font-weight: bold;
-        color: #f97316;
-        display: block;
-        margin-bottom: 4px;
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--accent-amber);
+      margin-bottom: 3px;
     }
     .accolade-detail {
-        color: #cbd5e1;
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
     }
-    
+
+    .search-wrapper { position: relative; }
+    .suggestions {
+      position: absolute;
+      z-index: 1500;
+      left: 0;
+      right: 0;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-active);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .suggestions::-webkit-scrollbar { width: 4px; }
+    .suggestions::-webkit-scrollbar-track { background: transparent; }
+    .suggestions::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 4px; }
+    .suggestion-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.1s;
+    }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover { background: var(--bg-highlight); color: var(--text-primary); }
+
     #overlapPopover {
-        position: absolute;
-        top: 0; 
-        left: 0; 
-        transform: none;
-        z-index: 2000;
-        background: linear-gradient(135deg,#1e293b 0%,#0f172a 100%); 
-        border: 1px solid #3b82f6; 
-        border-radius: 8px;
-        padding: 10px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-        pointer-events: auto; 
-        width: 250px;
-        max-height: 300px;
-        overflow-y: auto;
-        transition: opacity 0.2s ease, transform 0.2s ease;
+      position: absolute;
+      z-index: 2000;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-active);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-panel);
+      width: 240px;
+      max-height: 280px;
+      overflow-y: auto;
+      pointer-events: auto;
     }
+    #overlapPopover::-webkit-scrollbar { width: 4px; }
+    #overlapPopover::-webkit-scrollbar-track { background: transparent; }
+    #overlapPopover::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 4px; }
     #overlapPopover h4 {
-        font-size: 14px;
-        color: #60a5fa;
-        padding-bottom: 5px;
-        border-bottom: 2px solid #3b82f6;
-        margin-bottom: 8px;
-        font-weight: 700;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      padding: 10px 12px 8px;
+      border-bottom: 1px solid var(--border-subtle);
     }
     .popover-item {
-        padding: 6px 10px;
-        font-size: 12px;
-        color: #e2e8f0;
-        cursor: pointer;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        transition: background-color 0.2s;
-        border-bottom: 1px solid rgba(59,130,246,0.1);
+      padding: 7px 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 0;
     }
-    .popover-item:last-child {
-        border-bottom: none;
-    }
-    .popover-item:hover {
-        background: rgba(59,130,246,0.15);
-    }
+    .popover-item:last-child { border-bottom: none; }
+    .popover-item:hover { background: var(--bg-highlight); color: var(--text-primary); }
     .popover-item .rank {
-        font-weight: 700;
-        color: #f97316;
-        margin-right: 5px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent-amber);
+      margin-right: 6px;
+      flex-shrink: 0;
     }
-    
+
     #hoverTooltip {
-        position: absolute;
-        padding: 6px 10px;
-        border-radius: 6px;
-        background-color: rgba(15, 23, 42, 0.95);
-        border: 2px solid #3b82f6;
-        color: white;
-        font-size: 13px;
-        font-weight: 600;
-        z-index: 3000;
-        pointer-events: none;
-        white-space: nowrap;
-        box-shadow: 0 2px 8px rgba(59,130,246,0.4);
-        transition: opacity 0.1s ease-in-out;
-        opacity: 0;
+      position: absolute;
+      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-active);
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 500;
+      z-index: 3000;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      transition: opacity 0.08s ease;
+      opacity: 0;
     }
 
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-active);
+      padding: 24px 40px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-panel);
+      z-index: 2000;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent-blue-lt);
+      letter-spacing: 0.02em;
+    }
+    @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.5 } }
+    .loading { animation: pulse 1.8s ease-in-out infinite; }
 
+    .hidden { display: none !important; }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    .slider-row label { margin: 0; }
+    .slider-val {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-blue-lt);
+      background: rgba(59,130,246,0.1);
+      border: 1px solid rgba(59,130,246,0.2);
+      padding: 1px 7px;
+      border-radius: 20px;
+    }
+
+    #modalOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 2400;
+      display: none;
+      backdrop-filter: blur(4px);
+    }
+    #modalOverlay.visible { display: block; }
+
+    #toolsModal {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2500;
+      width: min(680px, calc(100vw - 32px));
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-panel);
+      display: none;
+    }
+    #toolsModal::-webkit-scrollbar { width: 4px; }
+    #toolsModal::-webkit-scrollbar-track { background: transparent; }
+    #toolsModal::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 4px; }
+    #toolsModal.visible { display: block; }
+
+    .modal-inner { padding: 22px; }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .modal-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+    .modal-title span { color: var(--accent-blue); }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      transition: color 0.15s, background 0.15s;
+    }
+    .modal-close:hover { color: var(--text-primary); background: var(--bg-elevated); }
+
+    .tool-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 18px;
+      background: var(--bg-elevated);
+      padding: 4px;
+      border-radius: var(--radius-md);
+    }
+    .tool-tab {
+      flex: 1;
+      padding: 7px 10px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: all 0.15s;
+      font-family: var(--font-body);
+    }
+    .tool-tab:hover { color: var(--text-secondary); background: var(--bg-highlight); }
+    .tool-tab.active {
+      background: rgba(59,130,246,0.15);
+      color: var(--accent-blue-lt);
+      border: 1px solid rgba(59,130,246,0.25);
+    }
+    .tool-panel { display: none; }
+    .tool-panel.active { display: block; }
+
+    .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .calc-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+    .calc-field input, .calc-field select {
+      width: 100%;
+      padding: 7px 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-family: var(--font-body);
+      color: var(--text-primary);
+      appearance: none;
+    }
+    .calc-field input:focus, .calc-field select:focus {
+      outline: none;
+      border-color: var(--border-active);
+    }
+    .calc-field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%234d5d78' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+    .calc-result-box {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+    .calc-result-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .calc-result-value {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--accent-blue-lt);
+    }
+    .calc-result-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .calc-results-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .calc-stat-box {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+    }
+    .calc-stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+    .calc-stat-value { font-family: var(--font-mono); font-size: 15px; font-weight: 500; color: var(--text-primary); }
+    .calc-stat-value.green { color: var(--accent-green); }
+    .calc-stat-value.teal  { color: var(--accent-teal); }
+    .calc-stat-value.amber { color: var(--accent-amber); }
+    .calc-btn {
+      width: 100%;
+      padding: 9px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: opacity 0.2s, transform 0.15s;
+      font-family: var(--font-body);
+    }
+    .calc-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .calc-btn:active { transform: translateY(0); }
+    .calc-btn.secondary {
+      background: var(--bg-elevated);
+      color: var(--accent-teal);
+      border: 1px solid var(--border-soft);
+      margin-bottom: 10px;
+    }
+    .calc-note { font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: center; font-style: italic; }
+
+    .set-adj-pills { display: flex; gap: 8px; margin-top: 8px; }
+    .adj-pill {
+      flex: 1;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 7px 10px;
+      text-align: center;
+    }
+    .adj-pill-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+    .adj-pill-value { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--accent-teal); }
+
+    .pred-teams-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    .pred-team-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      
+    }
+    .pred-team-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 8px;
+    }
+    .pred-result-main {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .pred-vs {
+      font-family: var(--font-mono);
+      font-size: 26px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .pred-winner-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+    .pred-winner-name { font-size: 15px; font-weight: 600; color: var(--accent-green); }
+    .pred-prob-bar {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .pred-prob-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; font-weight: 600; }
+    .pred-prob-track { height: 7px; background: var(--bg-base); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
+    .pred-prob-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent-blue), var(--accent-green)); transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+    .pred-prob-labels { display: flex; justify-content: space-between; font-size: 11px; }
+    .pred-team-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .pred-team-stat-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+    }
+    .pred-team-stat-title {
+      font-size: 10px; font-weight: 700; color: var(--accent-amber);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;
+    }
+    .pred-stat-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 3px 0; border-bottom: 1px solid var(--border-subtle);
+    }
+    .pred-stat-row:last-child { border-bottom: none; }
+    .pred-stat-key { font-size: 11px; color: var(--text-secondary); }
+    .pred-stat-val { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--text-primary); }
+
+    .adj-table-wrap { max-height: 280px; overflow-y: auto; }
+    .adj-table-wrap::-webkit-scrollbar { width: 4px; }
+    .adj-table-wrap::-webkit-scrollbar-track { background: transparent; }
+    .adj-table-wrap::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 4px; }
+    .adj-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .adj-table th {
+      padding: 7px 10px; text-align: left; font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.07em; color: var(--accent-blue-lt);
+      border-bottom: 1px solid var(--border-soft); position: sticky; top: 0;
+      background: var(--bg-elevated);
+    }
+    .adj-table td { padding: 6px 10px; border-bottom: 1px solid var(--border-subtle); color: var(--text-primary); }
+    .adj-table tr:last-child td { border-bottom: none; }
+    .adj-table tr:hover td { background: var(--bg-highlight); cursor: pointer; }
+    .adj-num { font-family: var(--font-mono); color: var(--accent-teal); font-weight: 500; }
+
+    .calc-row-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .calc-row-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .calc-row-title {
+      font-size: 11px; font-weight: 700; color: var(--accent-blue-lt);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .calc-row-remove {
+      background: none; border: none; color: var(--text-muted); cursor: pointer;
+      font-size: 14px; padding: 2px 6px; border-radius: 4px; transition: color 0.15s;
+    }
+    .calc-row-remove:hover { color: var(--text-primary); }
+
+    .pred-search-wrap { position: relative; margin-bottom: 8px; }
+    .pred-suggestions {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(100% + 4px);
+      z-index: 3000;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-active);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      max-height: 160px;
+      overflow-y: auto;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .pred-suggestions .suggestion-item { font-size: 12px; }
+
+    @media (max-width: 640px) {
+      .pred-teams-grid, .calc-grid { grid-template-columns: 1fr; }
+      #toolsModal { width: calc(100vw - 16px); }
+    }
   </style>
 </head>
 <body>
 
 <button id="toggleSettings" onclick="togglePanel()">☰</button>
 <button id="toggleRankings" onclick="toggleRankingsPanel()">☰</button>
+<button id="btnTools" title="Open Tools" onclick="openTools()">⚙</button>
 
-<div id="controlPanel" class="control-panel">
-  <h2>qbranks.live</h2>
-
-  <div class="control-group search-wrapper">
-    <label>Search Team</label>
-    <input type="text" id="teamSearch" placeholder="Type team name..." oninput="handleSearchInput()" autocomplete="off">
-    <div id="suggestions" class="suggestions hidden"></div>
+<div id="controlPanel" class="panel-base control-panel">
+  <div class="panel-header">
+    <h2>qb<span>ranks</span>.live</h2>
   </div>
 
-  <div class="filter-section">
-    <h4>Visual Settings</h4>
+  <div class="panel-body">
 
-    <div class="checkbox-group" style="margin-bottom: 12px;">
-      <input type="checkbox" id="darkMode" checked onchange="toggleDarkMode()">
-      <label for="darkMode">Dark Mode</label>
+    <div class="filter-section">
+      <div class="control-group search-wrapper">
+        <label>Search team</label>
+        <input type="text" id="teamSearch" placeholder="Type team name…" oninput="handleSearchInput()" autocomplete="off">
+        <div id="suggestions" class="suggestions hidden"></div>
+      </div>
     </div>
 
-    <div class="control-group">
-      <label>Color Scheme</label>
-      <select id="colorScheme" onchange="updateColors()">
-        <option value="random">Random Colors</option>
-        <option value="rank">Color by Rank</option>
-        <option value="score">Color by Score</option>
-      </select>
+    <div class="filter-section">
+      <h4>Visual settings</h4>
+
+      <div class="checkbox-group" style="margin-bottom: 10px;">
+        <input type="checkbox" id="darkMode" checked onchange="toggleDarkMode()">
+        <label for="darkMode">Dark mode</label>
+      </div>
+
+      <div class="control-group">
+        <label>Color scheme</label>
+        <select id="colorScheme" onchange="updateColors()">
+          <option value="random">Random colors</option>
+          <option value="rank">By rank</option>
+          <option value="score">By score</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>Circle size</label>
+        <select id="sizeMode" onchange="updateSizes()">
+          <option value="score">By score</option>
+          <option value="uniform">Uniform</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <div class="slider-row">
+          <label>Radius multiplier</label>
+          <span class="slider-val" id="radiusVal">1.0×</span>
+        </div>
+        <input type="range" id="radiusSlider" min="0.2" max="4" step="0.1" value="1" oninput="handleRadiusSlider()" onchange="updateSizes()">
+      </div>
     </div>
 
-    <div class="control-group">
-      <label>Circle Size Mode</label>
-      <select id="sizeMode" onchange="updateSizes()">
-        <option value="score">By Score</option>
-        <option value="uniform">Uniform</option>
-      </select>
+    <div class="filter-section">
+      <h4>Map filters</h4>
+
+      <div class="control-group">
+        <label>State / region</label>
+        <select id="stateFilter" onchange="handleStateFilter()">
+          <option value="">All states</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>Show top N teams</label>
+        <input type="number" id="topX" placeholder="e.g. 100" min="1" oninput="updateMapVisibility()" />
+      </div>
     </div>
 
-    <div class="control-group">
-      <label>Circle Radius Multiplier (<span id="radiusVal">1.0</span>x)</label>
-      <input type="range" id="radiusSlider" min="0.2" max="4" step="0.1" value="1" oninput="handleRadiusSlider()" onchange="updateSizes()">
-    </div>
-  </div>
-
-  <div class="filter-section">
-    <h4>Map Filters</h4>
-
-    <div class="control-group">
-      <label>Filter by State/Region</label>
-      <select id="stateFilter" onchange="handleStateFilter()">
-        <option value="">Show All States</option>
-      </select>
+    <div class="filter-section">
+      <h4>Grade level</h4>
+      <div class="checkbox-group">
+        <input type="checkbox" id="gradeHS" checked onchange="handleGradeToggle()">
+        <label for="gradeHS">High school (HS)</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="gradeMS" checked onchange="handleGradeToggle()">
+        <label for="gradeMS">Middle / elementary (MS/ES)</label>
+      </div>
     </div>
 
-    <div class="control-group">
-      <label>Show Top X teams (leave empty to show all)</label>
-      <input type="number" id="topX" placeholder="e.g. 100" min="1" oninput="updateMapVisibility()" />
+    <div class="filter-section">
+      <h4>Set type</h4>
+      <div class="checkbox-group">
+        <input type="checkbox" id="setNAQT" checked onchange="handleSetToggle()">
+        <label for="setNAQT">NAQT</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="setmACF" checked onchange="handleSetToggle()">
+        <label for="setmACF">mACF</label>
+      </div>
     </div>
-  </div>
 
-  <div class="filter-section">
-    <h4>Grade Level Filter</h4> 
-    <div class="checkbox-group">
-      <input type="checkbox" id="gradeHS" checked onchange="handleGradeToggle()">
-      <label for="gradeHS">High School (HS)</label>
+    <div class="filter-section">
+      <h4>Small school ranks</h4>
+      <div class="control-group">
+        <label>Division</label>
+        <select id="ssnctDivision" onchange="refreshData()">
+          <option value="">— None —</option>
+          <option value="tpe">Traditional public schools</option>
+          <option value="vss">Very small schools</option>
+          <option value="open">Open</option>
+        </select>
+      </div>
     </div>
-    <div class="checkbox-group">
-      <input type="checkbox" id="gradeMS" checked onchange="handleGradeToggle()">
-      <label for="gradeMS">Middle/Elementary (MS/ES)</label>
-    </div>
-  </div>
 
-  <div class="filter-section">
-    <h4>Set Type Filter</h4> 
-    <div class="checkbox-group">
-      <input type="checkbox" id="setNAQT" checked onchange="handleSetToggle()">
-      <label for="setNAQT">NAQT</label>
+    <div class="stats-summary" id="statsSummary">
+      <strong>Loading data…</strong>
     </div>
-    <div class="checkbox-group">
-      <input type="checkbox" id="setmACF" checked onchange="handleSetToggle()">
-      <label for="setmACF">mACF</label>
-    </div>
-  </div>
 
-  <!-- Small School Ranks Section -->
-  <div class="filter-section">
-    <h4>Small School Ranks</h4>
-    <div class="control-group">
-      <label>Division</label>
-      <select id="ssnctDivision" onchange="refreshData()" style="border-color: rgba(16,185,129,0.4);">
-        <option value="">— None —</option>
-        <option value="tpe">Traditional Public Schools</option>
-        <option value="vss">Very Small Schools</option>
-        <option value="open">Open</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="stats-summary" id="statsSummary">
-    <strong>Loading data...</strong>
   </div>
 </div>
 
-<div class="rankings-panel" id="rankingsPanel">
-  <div class="control-group" style="margin-bottom: 15px;">
-    <label>Ranking View</label>
-    <select id="rankingViewSelect" onchange="switchRankingView(this.value)">
-        <option value="overall">Overall Team Rankings</option>
-        <option value="hs_circuit">HS State Rankings</option>
-        <option value="ms_circuit">MS State Rankings</option>
-        <option value="accolades">Accolades</option>
-    </select>
-  </div>
-  
+<div class="panel-base rankings-panel" id="rankingsPanel">
+  <select id="rankingViewSelect" onchange="switchRankingView(this.value)">
+    <option value="overall">Overall rankings</option>
+    <option value="hs_circuit">HS state rankings</option>
+    <option value="ms_circuit">MS state rankings</option>
+    <option value="accolades">Accolades</option>
+  </select>
+
   <div id="overallRankingsContent">
-      <h3>Overall Team Rankings</h3>
-      <div id="topRankings"></div>
+    <h3>Overall team rankings</h3>
+    <div id="topRankings"></div>
   </div>
 
   <div id="hsCircuitRankingsContent" class="hidden">
-      <h3>HS State Rankings</h3>
-      <div id="hsCircuitRankings"></div>
+    <h3>HS state rankings</h3>
+    <div id="hsCircuitRankings"></div>
   </div>
 
   <div id="msCircuitRankingsContent" class="hidden">
-      <h3>MS State Rankings</h3>
-      <div id="msCircuitRankings"></div>
+    <h3>MS state rankings</h3>
+    <div id="msCircuitRankings"></div>
   </div>
 
   <div id="accoladesContent" class="hidden">
-      <h3>Accolades</h3>
-      <div id="accoladesList"></div>
+    <h3>Accolades</h3>
+    <div id="accoladesList"></div>
   </div>
 </div>
 
-<div id="loading" class="loading hidden">Loading data...</div>
+<div id="loading" class="loading hidden">Loading data…</div>
 
 <div id="map"></div>
-<div id="overlapPopover" class="hidden"></div> 
-<div id="hoverTooltip" style="opacity:0;"></div>
+<div id="overlapPopover" class="hidden"></div>
+<div id="hoverTooltip"></div>
+
+<div id="modalOverlay" onclick="closeTools()"></div>
+
+<div id="toolsModal">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <div class="modal-title">qbranks <span>Tools</span></div>
+      <button class="modal-close" onclick="closeTools()">✕</button>
+    </div>
+
+    <div class="tool-tabs">
+      <button class="tool-tab active" onclick="switchToolTab('calculator')"> Score Calculator</button>
+      <button class="tool-tab" onclick="switchToolTab('predictor')"> Game Predictor</button>
+      <button class="tool-tab" onclick="switchToolTab('setadj')"> Set Adjustments</button>
+    </div>
+
+    <div id="toolCalculator" class="tool-panel active">
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;">Enter your tournament stats to calculate your qbranks score. Add multiple results to get a weighted composite.</p>
+      <div id="calcRows"></div>
+      <button class="calc-btn secondary" onclick="addCalcRow()">+ Add Another Result</button>
+      <div class="calc-field" style="margin-bottom:12px;">
+        <label>Set Name</label>
+        <select id="calcSetName" onchange="updateCalcSetAdj()">
+          <option value="">-- Select Set --</option>
+        </select>
+        <div class="set-adj-pills" id="calcSetAdjDisplay" style="display:none;">
+          <div class="adj-pill"><div class="adj-pill-label">P/G Adj</div><div class="adj-pill-value" id="calcPGAdj">—</div></div>
+          <div class="adj-pill"><div class="adj-pill-label">PPB Adj</div><div class="adj-pill-value" id="calcPPBAdj">—</div></div>
+        </div>
+      </div>
+      <button class="calc-btn" onclick="runCalculator()">Calculate Score</button>
+      <div id="calcOutput" style="display:none;margin-top:16px;">
+        <div class="calc-result-box">
+          <div class="calc-result-label">Final Composite Score</div>
+          <div class="calc-result-value" id="calcFinalScore">—</div>
+          <div class="calc-result-sub" id="calcScoreSub">—</div>
+        </div>
+        <div id="calcResultsBreakdown"></div>
+        <p class="calc-note">Score uses the top result weighted 3×, second 2×, third 1×</p>
+      </div>
+    </div>
+
+    <div id="toolPredictor" class="tool-panel">
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;">Enter two team names or scores to predict a matchup. Team names auto-fill from loaded rankings.</p>
+      <div class="pred-teams-grid">
+        <div>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:8px;">Team 1</div>
+          <div class="pred-search-wrap">
+            <input type="text" id="predTeam1" class="calc-field" style="width:100%;padding:7px 10px;background:var(--bg-elevated);border:1px solid var(--border-soft);border-radius:var(--radius-sm);font-size:12px;font-family:var(--font-body);color:var(--text-primary);" placeholder="Team name…" oninput="handlePredSearch(1)" autocomplete="off">
+            <div id="predSug1" class="pred-suggestions hidden"></div>
+          </div>
+          <div style="margin-top:6px;">
+            <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:5px;">Override Score</label>
+            <input type="number" id="predScore1" style="width:100%;padding:7px 10px;background:var(--bg-elevated);border:1px solid var(--border-soft);border-radius:var(--radius-sm);font-size:12px;font-family:var(--font-body);color:var(--text-primary);" placeholder="e.g. 85.5" step="0.01" min="0">
+          </div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:8px;">Team 2</div>
+          <div class="pred-search-wrap">
+            <input type="text" id="predTeam2" style="width:100%;padding:7px 10px;background:var(--bg-elevated);border:1px solid var(--border-soft);border-radius:var(--radius-sm);font-size:12px;font-family:var(--font-body);color:var(--text-primary);" placeholder="Team name…" oninput="handlePredSearch(2)" autocomplete="off">
+            <div id="predSug2" class="pred-suggestions hidden"></div>
+          </div>
+          <div style="margin-top:6px;">
+            <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:5px;">Override Score</label>
+            <input type="number" id="predScore2" style="width:100%;padding:7px 10px;background:var(--bg-elevated);border:1px solid var(--border-soft);border-radius:var(--radius-sm);font-size:12px;font-family:var(--font-body);color:var(--text-primary);" placeholder="e.g. 89.3" step="0.01" min="0">
+          </div>
+        </div>
+      </div>
+
+      <div class="calc-field" style="margin-bottom:14px;">
+        <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:5px;">Set / Tournament Adjustment</label>
+        
+        <select id="predSetName" onchange="updatePredSetAdj()" style="width:100%;padding:7px;background:var(--bg-elevated);border:1px solid var(--border-soft);border-radius:var(--radius-sm);font-size:12px;color:var(--text-primary);margin-bottom:8px;">
+          <option value="">-- Select Set --</option>
+        </select>
+      
+        <div style="display: flex; gap: 8px;">
+          <div style="flex:1">
+            <label style="font-size:9px; color:var(--text-muted);">Manual P/G Adj</label>
+            <input type="number" id="manualPGAdj" step="0.01" placeholder="0.00" oninput="runPredictor()" style="width:100%;padding:5px;background:var(--bg-elevated);border:1px solid var(--border-soft);border-radius:4px;color:var(--accent-teal);font-size:12px;">
+          </div>
+          <div style="flex:1">
+            <label style="font-size:9px; color:var(--text-muted);">Manual PPB Adj</label>
+            <input type="number" id="manualPPBAdj" step="0.01" placeholder="0.00" oninput="runPredictor()" style="width:100%;padding:5px;background:var(--bg-elevated);border:1px solid var(--border-soft);border-radius:4px;color:var(--accent-teal);font-size:12px;">
+          </div>
+        </div>
+      </div>
+
+      <button class="calc-btn" onclick="runPredictor()">Predict Matchup</button>
+
+      <div id="predOutput" style="display:none;margin-top:16px;">
+        <div class="pred-result-main">
+          <div class="pred-vs" id="predScoreDisplay">— — —</div>
+          <div class="pred-winner-label">Predicted Winner</div>
+          <div class="pred-winner-name" id="predWinnerName">—</div>
+        </div>
+        <div class="pred-prob-bar">
+          <div class="pred-prob-label">Win Probability</div>
+          <div class="pred-prob-track"><div class="pred-prob-fill" id="predProbFill" style="width:50%;"></div></div>
+          <div class="pred-prob-labels">
+            <span id="predProb1Label" style="color:var(--accent-blue-lt);font-family:var(--font-mono);font-size:11px;font-weight:500;">50%</span>
+            <span id="predProb2Label" style="color:#f472b6;font-family:var(--font-mono);font-size:11px;font-weight:500;">50%</span>
+          </div>
+        </div>
+        <div class="pred-team-stat-grid">
+          <div class="pred-team-stat-card">
+            <div class="pred-team-stat-title" id="predCard1Title">Team 1</div>
+            <div class="pred-stat-row"><span class="pred-stat-key">Powers</span><span class="pred-stat-val" id="predT1Powers">—</span></div>
+            <div class="pred-stat-row"><span class="pred-stat-key">Tens</span><span class="pred-stat-val" id="predT1Tens">—</span></div>
+            <div class="pred-stat-row"><span class="pred-stat-key">Negs</span><span class="pred-stat-val" id="predT1Negs">—</span></div>
+            <div class="pred-stat-row"><span class="pred-stat-key">PPB</span><span class="pred-stat-val" id="predT1PPB">—</span></div>
+          </div>
+          <div class="pred-team-stat-card">
+            <div class="pred-team-stat-title" id="predCard2Title">Team 2</div>
+            <div class="pred-stat-row"><span class="pred-stat-key">Powers</span><span class="pred-stat-val" id="predT2Powers">—</span></div>
+            <div class="pred-stat-row"><span class="pred-stat-key">Tens</span><span class="pred-stat-val" id="predT2Tens">—</span></div>
+            <div class="pred-stat-row"><span class="pred-stat-key">Negs</span><span class="pred-stat-val" id="predT2Negs">—</span></div>
+            <div class="pred-stat-row"><span class="pred-stat-key">PPB</span><span class="pred-stat-val" id="predT2PPB">—</span></div>
+          </div>
+        </div>
+        <p class="calc-note" style="margin-top:10px;">Scores based on 20 tossup game. Std dev: ±180 pts.</p>
+      </div>
+    </div>
+
+    <!-- SET ADJUSTMENTS -->
+    <div id="toolSetAdj" class="tool-panel">
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;">Set difficulty adjustments. Higher = harder. Click a row to load it into the Calculator or Predictor.</p>
+      <div class="adj-table-wrap">
+        <table class="adj-table">
+          <thead><tr><th>Set Name</th><th>P/G Adj</th><th>PPB Adj</th></tr></thead>
+          <tbody id="adjTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-const SHEET_ID = "1ZiV-l0X4Hlvice0GX7CJZ5YGlXodMcdCNRGVanVzlaA"; 
+// ── SET ADJUSTMENTS ──
+const SET_ADJUSTMENTS = [
+  {set:'ORCUS',pg:0.0,ppb:3.058},
+  {set:'MS-57',pg:0.2053,ppb:0.4884},
+  {set:'MS-55',pg:0.2486,ppb:1.5619},
+  {set:'MS-56',pg:0.4436,ppb:1.114},
+  {set:'MS-58',pg:0.6535,ppb:0.0},
+  {set:'Rockford Quiz Bowl Novice',pg:2.0504,ppb:1.9106},
+  {set:'IS-247A',pg:2.4162,ppb:5.2343},
+  {set:'LIQBA Standard Set #1',pg:2.2618,ppb:7.9964},
+  {set:'WARTIDE',pg:2.8314,ppb:7.9786},
+  {set:'IS-243A',pg:2.9072,ppb:6.2327},
+  {set:'IS-239A',pg:2.9419,ppb:6.8949},
+  {set:'IS-241A',pg:2.9384,ppb:6.3942},
+  {set:'IQBT 7',pg:3.2804,ppb:6.7343},
+  {set:'IS-245A',pg:3.3141,ppb:5.9918},
+  {set:'Mini Dart',pg:3.5087,ppb:8.5053},
+  {set:'MACKEREL',pg:3.5027,ppb:8.9738},
+  {set:'IS-246',pg:3.4773,ppb:9.022},
+  {set:'SHOW-ME 4',pg:3.6683,ppb:8.4107},
+  {set:'IS-244',pg:3.755,ppb:9.3858},
+  {set:'IS-242',pg:3.8996,ppb:9.595},
+  {set:'IS-240',pg:3.9714,ppb:9.3648},
+  {set:'SQUIRREL',pg:4.6823,ppb:9.0562},
+  {set:'Planetfall III',pg:4.7544,ppb:9.1752},
+  {set:'Glasgow Scottie',pg:4.9117,ppb:10.7059},
+  {set:'VAULT II',pg:5.1928,ppb:10.2088},
+  {set:'GSAC XXVII',pg:5.2601,ppb:7.4592},
+  {set:'CREEK II',pg:5.0146,ppb:11.2033},
+  {set:'MRNA V',pg:6.6354,ppb:13.8072},
+  {set:'Scarlet Houseknight',pg:6.3282,ppb:11.575},
+  {set:'ARCADIA V',pg:7.00512,ppb:12.84328},
+];
+const SET_ADJ_MAP = {};
+SET_ADJUSTMENTS.forEach(s => { SET_ADJ_MAP[s.set] = s; });
+
+// ── PREDICTOR COEFFICIENTS ──
+const PRED = {
+  tc_intercept: 1.3922363418580255,
+  tc_score: 0.23645227764033444,
+  tc_opp: -0.08284500346444996,
+  tc_pg: -0.8254973582544777,
+  pp_intercept: -0.03853106353495498,
+  pp_score: 0.010743654638987679,
+  pp_opp: 9.469745036508396e-4,
+  pp_pg: -0.09122693485601711,
+  ppb_intercept: 3.0919854711478747,
+  ppb_score: 0.3423571111936907,
+  ppb_ppb: -1.4455744686691434,
+  neg_intercept: 0.10862802672076752,
+  neg_score: 0.025941502279936614,
+  STD_DEV: 180
+};
+
+const SHEET_ID = "1ZiV-l0X4Hlvice0GX7CJZ5YGlXodMcdCNRGVanVzlaA";
 const LOCATION_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Location%20Data`;
 const OVERALL_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1322713749`;
 const OVERALL_NAQT_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=81041869`;
@@ -460,7 +1291,6 @@ const MS_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx
 const MS_NAQT_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=566842992`;
 const MS_MACF_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1791150640`;
 
-// SSNCT sheet URLs — replace sheet name strings with the actual sheet names from the spreadsheet
 const SSNCT_TPE_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=SSNCT%20(TPE)`;
 const SSNCT_VSS_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=SSNCT%20(VSS)`;
 const SSNCT_OPEN_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=SSNCT%20(Open)`;
@@ -470,8 +1300,6 @@ const SSNCT_SHEET_MAP = {
   vss: SSNCT_VSS_SHEET,
   open: SSNCT_OPEN_SHEET
 };
-
-
 
 function getCircuitFullName(code) {
     const map = {
@@ -514,30 +1342,18 @@ const hsCircuitData = [
 ].map(c => ({...c, circuit: getCircuitFullName(c.circuit)}));
 
 const msCircuitData = [
-    { rank: 1, circuit: 'TX', strength: 22.33 },
-    { rank: 2, circuit: 'GA', strength: 15.95 },
-    { rank: 3, circuit: 'CA', strength: 12.80 },
-    { rank: 4, circuit: 'VA', strength: 11.25 },
-    { rank: 5, circuit: 'ROK', strength: 10.64 },
-    { rank: 6, circuit: 'MD', strength: 10.31 },
-    { rank: 7, circuit: 'NJ', strength: 9.42 },
-    { rank: 8, circuit: 'NY', strength: 9.11 },
-    { rank: 9, circuit: 'KY', strength: 8.67 },
-    { rank: 10, circuit: 'CT', strength: 8.34 },
-    { rank: 11, circuit: 'OH', strength: 8.13 },
-    { rank: 12, circuit: 'IL', strength: 8.03 },
-    { rank: 13, circuit: 'NV', strength: 8.00 },
-    { rank: 14, circuit: 'IN', strength: 7.64 },
-    { rank: 15, circuit: 'FL', strength: 7.16 },
-    { rank: 16, circuit: 'NC', strength: 7.12 },
-    { rank: 17, circuit: 'WA', strength: 6.05 },
-    { rank: 18, circuit: 'LA', strength: 5.92 },
-    { rank: 19, circuit: 'DC', strength: 5.81 },
-    { rank: 20, circuit: 'WI', strength: 5.20 },
-    { rank: 21, circuit: 'TN', strength: 4.20 },
-    { rank: 22, circuit: 'OK', strength: 3.82 },
-    { rank: 23, circuit: 'PA', strength: 3.43 },
-    { rank: 24, circuit: 'MA', strength: 3.38 }
+    { rank: 1, circuit: 'TX', strength: 22.33 }, { rank: 2, circuit: 'GA', strength: 15.95 },
+    { rank: 3, circuit: 'CA', strength: 12.80 }, { rank: 4, circuit: 'VA', strength: 11.25 },
+    { rank: 5, circuit: 'ROK', strength: 10.64 }, { rank: 6, circuit: 'MD', strength: 10.31 },
+    { rank: 7, circuit: 'NJ', strength: 9.42 }, { rank: 8, circuit: 'NY', strength: 9.11 },
+    { rank: 9, circuit: 'KY', strength: 8.67 }, { rank: 10, circuit: 'CT', strength: 8.34 },
+    { rank: 11, circuit: 'OH', strength: 8.13 }, { rank: 12, circuit: 'IL', strength: 8.03 },
+    { rank: 13, circuit: 'NV', strength: 8.00 }, { rank: 14, circuit: 'IN', strength: 7.64 },
+    { rank: 15, circuit: 'FL', strength: 7.16 }, { rank: 16, circuit: 'NC', strength: 7.12 },
+    { rank: 17, circuit: 'WA', strength: 6.05 }, { rank: 18, circuit: 'LA', strength: 5.92 },
+    { rank: 19, circuit: 'DC', strength: 5.81 }, { rank: 20, circuit: 'WI', strength: 5.20 },
+    { rank: 21, circuit: 'TN', strength: 4.20 }, { rank: 22, circuit: 'OK', strength: 3.82 },
+    { rank: 23, circuit: 'PA', strength: 3.43 }, { rank: 24, circuit: 'MA', strength: 3.38 }
 ].map(c => ({...c, circuit: getCircuitFullName(c.circuit)}));
 
 const accoladesData = [
@@ -548,8 +1364,8 @@ const accoladesData = [
     { title: "Best MS Team on NAQT", detail: "St. Mark's School of Texas Middle A (67.92, #152)" },
     { title: "Best MS Team on mACF", detail: "Smith Middle A (65.08, #224)" },
     { title: "Best Tournament Director", detail: "Scott Kim (North by North Gwinnett IX, 56 teams)" },
-    { title: "Best HS Circuit", detail: `Illinois, Strength: 22.13` },
-    { title: "Best MS Circuit", detail: `Texas, Strength: 22.33` },
+    { title: "Best HS Circuit", detail: "Illinois, Strength: 22.13" },
+    { title: "Best MS Circuit", detail: "Texas, Strength: 22.33" },
     { title: "Best HS Rivalry", detail: "East Chapel Hill A vs Early College at Guilford A" },
     { title: "Best MS Rivalry", detail: "Hopkins A vs Redwood A" }
 ];
@@ -564,8 +1380,7 @@ let teamsMissingLocationGlobal = [];
 let uniqueStateCodes = new Set();
 const nearbyTeamsPanel = document.getElementById('overlapPopover');
 const hoverTooltip = document.getElementById('hoverTooltip');
-
-
+let calcRowCount = 0;
 
 window.addEventListener('load', function() {
   map = L.map('map').setView([39, -95], 4);
@@ -580,13 +1395,11 @@ window.addEventListener('load', function() {
   renderAccolades(accoladesData, 'accoladesList');
   map.on('popupopen', handlePopupOpen);
   map.on('popupclose', hideNearbyTeamsPanel);
-
-  map.on('zoomend', function() {
-    updateSizes();
-  });
+  map.on('zoomend', function() { updateSizes(); });
+  populateSetDropdowns();
+  renderAdjTable();
+  initCalcRows();
 });
-
-
 
 function createTileLayer(isDark) {
   if (currentTileLayer) { map.removeLayer(currentTileLayer); }
@@ -636,7 +1449,6 @@ function clearData() {
 }
 
 function getOverallURL() {
-  // SSNCT filter takes priority over all other filters
   const ssnct = document.getElementById('ssnctDivision').value;
   if (ssnct) return SSNCT_SHEET_MAP[ssnct];
 
@@ -659,17 +1471,11 @@ function getOverallURL() {
   if (!hs && !ms && naqt && !macf) return OVERALL_NAQT_SHEET;
   if (!hs && !ms && !naqt && macf) return OVERALL_MACF_SHEET;
   if (!hs && !ms && !naqt && !macf) return OVERALL_SHEET;
-  
   return OVERALL_SHEET;
 }
 
-function handleGradeToggle() {
-  refreshData();
-}
-
-function handleSetToggle() {
-  refreshData();
-}
+function handleGradeToggle() { refreshData(); }
+function handleSetToggle() { refreshData(); }
 
 async function refreshData() {
   clearData();
@@ -681,17 +1487,13 @@ async function loadData() {
   try {
     const locUrl = LOCATION_SHEET;
     const overallUrl = getOverallURL();
-    console.log('Loading:', locUrl, overallUrl);
 
     const [locData, scoreData] = await Promise.all([ loadCSV(locUrl), loadCSV(overallUrl) ]);
-    console.log(scoreData[0], scoreData[1], scoreData[2], scoreData[3]);
     window._debug = scoreData;
     const cleanedScoreData = scoreData.filter(row => {
-    const firstVal = String(Object.values(row)[0] || '').trim();
-    return firstVal !== '' && !isNaN(parseInt(firstVal));
-    console.log(scoreData[0])
-
-});
+      const firstVal = String(Object.values(row)[0] || '').trim();
+      return firstVal !== '' && !isNaN(parseInt(firstVal));
+    });
 
     const SSNCT_URLS = Object.values(SSNCT_SHEET_MAP);
     const isOverallType = (overallUrl === OVERALL_SHEET || overallUrl === OVERALL_NAQT_SHEET || overallUrl === OVERALL_MACF_SHEET || SSNCT_URLS.includes(overallUrl));
@@ -720,11 +1522,6 @@ async function loadData() {
     for (const row of locData) {
         const name = (row["Team Name"] || row["Team"] || row["Name"] || '').trim();
         if (name) locationMap[name] = row;
-    }
-    let maxScore = 0;
-    for (const row of cleanedScoreData) {
-      const s = parseFloat(row[scoreColumnName]);
-      if (!isNaN(s)) maxScore = Math.max(maxScore, s);
     }
     
     let teamsMissingLocation = [];
@@ -789,11 +1586,6 @@ async function loadData() {
     teamsMissingLocationGlobal = teamsMissingLocation;
     uniqueStateCodes = tempStateCodes;
 
-    if (teamsMissingLocationGlobal.length > 0) {
-        console.warn(`Missing ${teamsMissingLocationGlobal.length} team(s) location data.`);
-        console.log(teamsMissingLocationGlobal);
-    }
-    
     populateStateFilter();
     calculateStateRanks();
 
@@ -832,14 +1624,14 @@ async function loadData() {
     const avgScore = allTeams.reduce((a,b) => a + (b.score||0), 0) / Math.max(allTeams.length,1);
     let statsHTML = `
       <strong>${allTeams.length}</strong> teams loaded<br>
-      Top Score: <strong>${(maxScoreLocal||0).toFixed(1)}</strong><br>
-      Avg Score: <strong>${avgScore.toFixed(1)}</strong>
+      Top score: <strong>${(maxScoreLocal||0).toFixed(1)}</strong><br>
+      Avg score: <strong>${avgScore.toFixed(1)}</strong>
     `;
     
     if (teamsMissingLocationGlobal.length > 0) {
         const missingListHTML = teamsMissingLocationGlobal.map(name => `<li>${name}</li>`).join('');
         statsHTML += `<br>
-            <span style="color: #f97316; font-weight: bold;"> ${teamsMissingLocationGlobal.length} missing location data!</span>
+            <span style="color: #f59e0b; font-weight: 600;">${teamsMissingLocationGlobal.length} missing location</span>
             <ul class="missing-teams-list">
                 ${missingListHTML}
             </ul>
@@ -849,7 +1641,6 @@ async function loadData() {
     document.getElementById('statsSummary').innerHTML = statsHTML;
     document.getElementById('loading').classList.add('hidden');
     updateMapVisibility();
-    console.log('Data loading completed.');
   } catch (err) {
     console.error('Error loading data:', err);
     document.getElementById('statsSummary').innerHTML = '<strong>Error loading data!</strong><br>Check console.';
@@ -859,8 +1650,8 @@ async function loadData() {
 
 function showHoverTooltip(teamName, x, y) {
     hoverTooltip.innerHTML = teamName;
-    hoverTooltip.style.left = `${x + 10}px`;
-    hoverTooltip.style.top = `${y + 10}px`;
+    hoverTooltip.style.left = `${x + 14}px`;
+    hoverTooltip.style.top = `${y + 14}px`;
     hoverTooltip.style.opacity = '1';
 }
 
@@ -871,81 +1662,43 @@ function hideHoverTooltip() {
 function getNearbyTeams(lat, lon, excludeName, radiusKm = 50) {
     const centerLatLng = L.latLng(lat, lon);
     const nearby = [];
-
     allTeams.forEach(team => {
-        if (team.name === excludeName || !team.circleRef || !markerLayerGroup.hasLayer(team.circleRef)) {
-            return;
-        }
-
-        const teamLatLng = L.latLng(team.lat, team.lon);
-        const distanceMeters = map.distance(centerLatLng, teamLatLng);
+        if (team.name === excludeName || !team.circleRef || !markerLayerGroup.hasLayer(team.circleRef)) return;
+        const distanceMeters = map.distance(centerLatLng, L.latLng(team.lat, team.lon));
         const distanceKm = distanceMeters / 1000;
-
-        if (distanceKm <= radiusKm) {
-            nearby.push({
-                ...team,
-                distance: distanceKm
-            });
-        }
+        if (distanceKm <= radiusKm) nearby.push({ ...team, distance: distanceKm });
     });
-
     return nearby.sort((a, b) => a.distance - b.distance);
 }
 
 function showNearbyTeamsPanel(team) {
     const panel = nearbyTeamsPanel;
     const nearby = getNearbyTeams(team.lat, team.lon, team.name, 50);
-
-    if (nearby.length === 0) {
-        hideNearbyTeamsPanel();
-        return;
-    }
-
-    let content = `<h4>Nearby Teams (within 50 km)</h4>`;
-    
+    if (nearby.length === 0) { hideNearbyTeamsPanel(); return; }
+    let content = `<h4>Nearby teams (50 km)</h4>`;
     nearby.forEach(nearbyTeam => {
         const rankText = nearbyTeam.rank ? `#${nearbyTeam.rank}` : '';
         const distanceText = nearbyTeam.distance.toFixed(1) + ' km';
         const nameText = nearbyTeam.name.replace(/'/g, "\\'");
-
-        content += `<div class="popover-item" 
-                    onclick="zoomToTeamAndOpenPopup(${nearbyTeam.lat}, ${nearbyTeam.lon}, '${nameText}')">
-                    <span class="rank">${rankText}</span> ${nearbyTeam.name}
-                    <span style="float:right; color:#94a3b8;">${distanceText}</span>
-                    </div>`;
+        content += `<div class="popover-item" onclick="zoomToTeamAndOpenPopup(${nearbyTeam.lat}, ${nearbyTeam.lon}, '${nameText}')"><span class="rank">${rankText}</span>${nearbyTeam.name}<span style="margin-left:auto; color:var(--text-muted); font-size:11px; font-family:var(--font-mono);">${distanceText}</span></div>`;
     });
-
     panel.innerHTML = content;
     panel.classList.remove('hidden');
-
     setTimeout(() => {
         const popup = document.querySelector('.leaflet-popup');
         if (popup) {
             const popupRect = popup.getBoundingClientRect();
             const mapRect = map.getContainer().getBoundingClientRect();
-
             let panelLeft = popupRect.right + 10 - mapRect.left;
             let panelTop = popupRect.top - mapRect.top;
-
             const panelWidth = panel.offsetWidth;
             const panelHeight = panel.offsetHeight;
-
             if (panelLeft + panelWidth > mapRect.width - 20) {
                 panelLeft = popupRect.left - panelWidth - 10 - mapRect.left;
-                if (panelLeft < 10) {
-                    panelLeft = 10;
-                }
-            } else if (panelLeft < 10) {
-                 panelLeft = 10;
-            }
-
-            if (panelTop + panelHeight > mapRect.height - 20) {
-                 panelTop = mapRect.height - panelHeight - 20;
-            }
-            if (panelTop < 20) {
-                panelTop = 20;
-            }
-
+                if (panelLeft < 10) panelLeft = 10;
+            } else if (panelLeft < 10) { panelLeft = 10; }
+            if (panelTop + panelHeight > mapRect.height - 20) panelTop = mapRect.height - panelHeight - 20;
+            if (panelTop < 20) panelTop = 20;
             panel.style.left = `${panelLeft}px`;
             panel.style.top = `${panelTop}px`;
             panel.style.transform = 'none';
@@ -959,9 +1712,7 @@ function handlePopupOpen(e) {
     if (circle && circle.options.pane === 'overlayPane') {
         const latLng = circle.getLatLng();
         const team = allTeams.find(t => t.lat === latLng.lat && t.lon === latLng.lng && t.circleRef === circle);
-        if (team) {
-            showNearbyTeamsPanel(team);
-        }
+        if (team) showNearbyTeamsPanel(team);
     }
 }
 
@@ -981,79 +1732,39 @@ function renderOverallRankings(teamsToShow) {
       const rb = parseInt(b.rank) || 9999999;
       return ra - rb;
     });
-
-    const topRankingsHTML = sorted.map((team, index) => {
+    const topRankingsHTML = sorted.map((team) => {
       const safeName = team.name.replace(/'/g, "\\'");
-      const rankText = `#${team.rank}`;
-      const scoreText = team.score.toFixed(1);
-
-      return `<div class="ranking-item" 
-                    data-team-rank="${team.rank}" 
-                    data-team-name="${safeName}" 
-                    onclick="zoomToTeam(${team.lat}, ${team.lon}, '${safeName}')">
-                <span class="ranking-number">${rankText}</span>
-                <span class="ranking-team">${team.name}</span>
-                <span class="ranking-score">${scoreText}</span>
-            </div>`;
+      return `<div class="ranking-item" data-team-rank="${team.rank}" data-team-name="${safeName}" onclick="zoomToTeam(${team.lat}, ${team.lon}, '${safeName}')"><span class="ranking-number">#${team.rank}</span><span class="ranking-team">${team.name}</span><span class="ranking-score">${team.score.toFixed(1)}</span></div>`;
     }).join('');
-    
     document.getElementById('topRankings').innerHTML = topRankingsHTML;
-
-    const panelHeading = document.querySelector('#overallRankingsContent h3');
-    panelHeading.textContent = 'Overall Team Rankings';
+    document.querySelector('#overallRankingsContent h3').textContent = 'Overall team rankings';
 }
 
 function populateStateFilter() {
     const select = document.getElementById('stateFilter');
-    select.innerHTML = '<option value="">Show All States</option>';
-
+    select.innerHTML = '<option value="">All states</option>';
     const sortedCodes = Array.from(uniqueStateCodes).sort();
-
     sortedCodes.forEach(code => {
         const option = document.createElement('option');
-        const fullName = getCircuitFullName(code);
         option.value = code;
-        option.textContent = `${code} (${fullName})`;
+        option.textContent = `${code} — ${getCircuitFullName(code)}`;
         select.appendChild(option);
     });
 }
 
-function handleStateFilter() {
-    updateMapVisibility();
-}
+function handleStateFilter() { updateMapVisibility(); }
 
 function renderCircuitRankings(data, targetId) {
-    let tableHTML = `<table class="circuit-table">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Circuit</th>
-                <th>Strength</th>
-            </tr>
-        </thead>
-        <tbody>`;
-    
+    let tableHTML = `<table class="circuit-table"><thead><tr><th>#</th><th>Circuit</th><th style="text-align:right;">Strength</th></tr></thead><tbody>`;
     data.forEach(row => {
-        tableHTML += `
-            <tr>
-                <td>${row.rank}</td>
-                <td>${row.circuit}</td>
-                <td>${row.strength.toFixed(2)}</td>
-            </tr>
-        `;
+        tableHTML += `<tr><td>${row.rank}</td><td>${row.circuit}</td><td style="text-align:right;">${row.strength.toFixed(2)}</td></tr>`;
     });
-
     tableHTML += `</tbody></table>`;
     document.getElementById(targetId).innerHTML = tableHTML;
 }
 
 function renderAccolades(data, targetId) {
-    const listHTML = data.map(item => `
-        <div class="accolade-item">
-            <span class="accolade-title">${item.title}</span>
-            <span class="accolade-detail">${item.detail}</span>
-        </div>
-    `).join('');
+    const listHTML = data.map(item => `<div class="accolade-item"><span class="accolade-title">${item.title}</span><span class="accolade-detail">${item.detail}</span></div>`).join('');
     document.getElementById(targetId).innerHTML = listHTML;
 }
 
@@ -1062,38 +1773,51 @@ function switchRankingView(view) {
     document.getElementById('hsCircuitRankingsContent').classList.add('hidden');
     document.getElementById('msCircuitRankingsContent').classList.add('hidden');
     document.getElementById('accoladesContent').classList.add('hidden');
-
-    if (view === 'overall') {
-        document.getElementById('overallRankingsContent').classList.remove('hidden');
-        updateMapVisibility();
-    } else if (view === 'hs_circuit') {
-        document.getElementById('hsCircuitRankingsContent').classList.remove('hidden');
-    } else if (view === 'ms_circuit') {
-        document.getElementById('msCircuitRankingsContent').classList.remove('hidden');
-    } else if (view === 'accolades') {
-        document.getElementById('accoladesContent').classList.remove('hidden');
-    }
+    if (view === 'overall') { document.getElementById('overallRankingsContent').classList.remove('hidden'); updateMapVisibility(); }
+    else if (view === 'hs_circuit') document.getElementById('hsCircuitRankingsContent').classList.remove('hidden');
+    else if (view === 'ms_circuit') document.getElementById('msCircuitRankingsContent').classList.remove('hidden');
+    else if (view === 'accolades') document.getElementById('accoladesContent').classList.remove('hidden');
 }
+
+const teamDescriptions = {
+    "Lexington (MA) A": "From the Boston metro, Lexington is probably the best team in the northeast and the world. Recieving players from Jonas Clarke Middle School, Lexington finished 33rd in 2024 at HSNCT. As an all sophmore team, they finished 5th in 2025, where they were one of the favorites to win the competition.",
+    "Adlai Stevenson (IL) A": "The top team in Illinois and the midwest, Adlai Stevenson is a perennial powerhouse.",
+    "Northview (GA) A": "One of the best teams in Georgia and the South, Northview, fed by Rivertrail Middle School's first and second place finishes at the 2023 and 2024 MSNCT, finished second at the 2025 HSNCT to Livingston.",
+    "Hazen (WA) A": "With solo player Padraig Finan, Hazen, from the Seattle metro, is the best team in the Pacific Northwest and perhaps the entire west coast.",
+    "Southside (AL) A": "Southside is a very young team fed by Rainbow Middle School. Led by freshman Russ McGlaughn, the team is highly ranked in the state. Their players includes freshman Will McGlaughn and Tyler Vincent, as well as Landon Garrard, a sophmore. The team is Alabama's reigning JV champion and aiming for a varsity title.",
+
+};
 
 function makePopupHTML(teamObj) {
     const row = teamObj.rawScoreRow || {};
     const bestSetCol = teamObj.bestSetCol;
     const bestSetVal = bestSetCol ? (row[bestSetCol] || '') : (row['Best Set'] || row['Set'] || '');
     const rankText = teamObj.rank || '';
-    let stateRankHTML = '';
     
+    const descriptionText = teamDescriptions[teamObj.name] || "";
+    const descriptionHTML = descriptionText 
+        ? `<div class="popup-description">${descriptionText}</div>` 
+        : "";
+
+    let stateRankHTML = '';
     if (teamObj.stateRank && teamObj.stateCode) {
-        stateRankHTML = `<span class="popup-label">State Rank:</span><span class="popup-value">#${teamObj.stateRank} (${getCircuitFullName(teamObj.stateCode)})</span>`;
+        stateRankHTML = `<span class="popup-label">State rank</span><span class="popup-value">#${teamObj.stateRank} (${getCircuitFullName(teamObj.stateCode)})</span>`;
     }
+
+    const safeNameForJS = teamObj.name.replace(/'/g, "\\'");
     
     const popup = `
-    <div class="popup-title">${teamObj.name}</div>
-    <div class="popup-stats">
-       <span class="popup-label">Score:</span><span class="score-badge">${teamObj.score.toFixed(1)}</span>
-       <span class="popup-label">Global Rank:</span><span class="rank-badge">${rankText ? '#' + rankText : '—'}</span>
-       ${stateRankHTML}
-       <span class="popup-label">Location:</span><span class="popup-value">${teamObj.location || '—'}</span>
-       <span class="popup-label">Best Set:</span><span class="popup-value">${bestSetVal || '—'}</span>
+    <div class="popup-inner">
+      <div class="popup-title">${teamObj.name}</div>
+      <div class="popup-stats">
+         <span class="popup-label">Score</span><span class="popup-value"><span class="score-badge">${teamObj.score.toFixed(1)}</span></span>
+         <span class="popup-label">Global rank</span><span class="popup-value"><span class="rank-badge">${rankText ? '#' + rankText : '—'}</span></span>
+         ${stateRankHTML}
+         <span class="popup-label">Location</span><span class="popup-value">${teamObj.location || '—'}</span>
+         <span class="popup-label">Best set</span><span class="popup-value">${bestSetVal || '—'}</span>
+      </div>
+      ${descriptionHTML}
+      <button class="popup-predict-btn" onclick="loadTeamInPredictor('${safeNameForJS}', ${teamObj.score})">Predict matchup</button>
     </div>`;
     return popup;
 }
@@ -1101,32 +1825,26 @@ function makePopupHTML(teamObj) {
 function computeRadius(score, maxScore) {
     const mode = document.getElementById('sizeMode')?.value || 'score';
     const zoom = map ? map.getZoom() : 4;
-    
     const zoomScale = Math.pow(1.5, 4 - zoom);
-    
     let base;
     if (mode === 'uniform') {
         base = 10000;
     } else {
         base = 3000 + ((score / (maxScore || 1)) * 50000);
     }
-    
     return base * radiusMultiplier * zoomScale;
 }
 
 function updateSizes() {
     if (!allTeams.length) return;
     const maxScore = Math.max(...allTeams.map(t=>t.score||0), 0);
-    circles.forEach(c => {
-        const newRadius = computeRadius(c.score, maxScore);
-        c.circle.setRadius(newRadius);
-    });
+    circles.forEach(c => { c.circle.setRadius(computeRadius(c.score, maxScore)); });
 }
 
 function handleRadiusSlider() {
     const v = parseFloat(document.getElementById('radiusSlider').value);
     radiusMultiplier = v;
-    document.getElementById('radiusVal').innerText = v.toFixed(1);
+    document.getElementById('radiusVal').innerText = v.toFixed(1) + '×';
     updateSizes();
 }
 
@@ -1135,7 +1853,7 @@ function randomColor() {
     return colors[Math.floor(Math.random()*colors.length)];
 }
 
-function getColorByRank(rank, maxRank) {
+function getColorByRank(rank) {
     rank = parseInt(rank) || 999999;
     if (rank <= 10) return '#22c55e';
     if (rank <= 50) return '#3b82f6';
@@ -1155,124 +1873,35 @@ function getColorByScore(score, maxScore) {
 
 function updateColors() {
     const scheme = document.getElementById('colorScheme').value;
-    const maxRank = Math.max(...allTeams.map(t => parseInt(t.rank) || 0));
     const maxScore = Math.max(...allTeams.map(t => parseFloat(t.score) || 0));
     circles.forEach(c => {
         let color;
         if (scheme === 'random') color = randomColor();
-        else if (scheme === 'rank') color = getColorByRank(c.rank, maxRank);
+        else if (scheme === 'rank') color = getColorByRank(c.rank);
         else if (scheme === 'score') color = getColorByScore(c.score, maxScore);
         c.circle.setStyle({ color: color, fillColor: color });
     });
 }
 
-function togglePanel() {
-    document.getElementById('controlPanel').classList.toggle('hidden');
-}
-
-function toggleRankingsPanel() {
-    const panel = document.getElementById('rankingsPanel');
-    panel.classList.toggle('hidden');
-}
+function togglePanel() { document.getElementById('controlPanel').classList.toggle('hidden'); }
+function toggleRankingsPanel() { document.getElementById('rankingsPanel').classList.toggle('hidden'); }
 
 function toggleDarkMode() {
     const isDark = document.getElementById('darkMode').checked;
-    document.body.style.background = isDark ? '#0f172a' : '#f8fafc';
-    document.body.style.color = isDark ? '#e2e8f0' : '#0f172a';
-    const panels = document.querySelectorAll('.control-panel, .rankings-panel, .loading, #overlapPopover, #hoverTooltip');
-    panels.forEach(panel => {
-        if (isDark) {
-            panel.style.background = 'linear-gradient(135deg,#1e293b 0%,#0f172a 100%)';
-            panel.style.borderColor = 'rgba(59,130,246,0.3)';
-            panel.style.color = '#e2e8f0';
-        } else {
-            panel.style.background = 'linear-gradient(135deg,#ffffff 0%,#f1f5f9 100%)';
-            panel.style.borderColor = 'rgba(59,130,246,0.2)';
-            panel.style.color = '#0f172a';
-        }
-    });
-    if (isDark) {
-        document.getElementById('hoverTooltip').style.backgroundColor = 'rgba(15, 23, 42, 0.95)';
-    } else {
-        document.getElementById('hoverTooltip').style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
-    }
-    const headings = document.querySelectorAll('.control-panel h2, .rankings-panel h3, .filter-section h4');
-    headings.forEach(h => h.style.color = isDark ? '#60a5fa' : '#2563eb');
-    const labels = document.querySelectorAll('.control-group label, .popup-label, .checkbox-group label');
-    labels.forEach(l => l.style.color = isDark ? '#94a3b8' : '#475569');
-    const inputs = document.querySelectorAll('.control-group select, .control-group input, .checkbox-group label');
-    inputs.forEach(input => {
-        if (isDark) {
-            input.style.background = 'rgba(15,23,42,0.8)';
-            input.style.color = '#e2e8f0';
-            input.style.borderColor = 'rgba(59,130,246,0.3)';
-        } else {
-            input.style.background = 'white';
-            input.style.color = '#0f172a';
-            input.style.borderColor = 'rgba(59,130,246,0.3)';
-        }
-    });
-    const rankingTeams = document.querySelectorAll('.ranking-item .ranking-team');
-    rankingTeams.forEach(team => {
-        if (!team.parentElement.classList.contains('selected')) {
-            team.style.color = isDark ? '#e2e8f0' : '#1e293b';
-        }
-    });
-    const popupValues = document.querySelectorAll('.popup-value');
-    popupValues.forEach(val => {
-        val.style.color = isDark ? '#e2e8f0' : '#1e293b';
-    });
-    const circuitTableCells = document.querySelectorAll('.circuit-table');
-    circuitTableCells.forEach(table => {
-        table.style.color = isDark ? '#e2e8f0' : '#1e293b';
-    });
-    const circuitTableHeaders = document.querySelectorAll('.circuit-table th');
-    circuitTableHeaders.forEach(th => {
-        th.style.color = isDark ? '#60a5fa' : '#2563eb';
-    });
-    const popoverEl = document.getElementById('overlapPopover');
-    if (isDark) {
-        popoverEl.style.background = 'linear-gradient(135deg,#1e293b 0%,#0f172a 100%)';
-        popoverEl.style.borderColor = '#3b82f6';
-        popoverEl.style.color = '#e2e8f0';
-    } else {
-        popoverEl.style.background = 'linear-gradient(135deg,#ffffff 0%,#f1f5f9 100%)';
-        popoverEl.style.borderColor = '#60a5fa';
-        popoverEl.style.color = '#0f172a';
-    }
+    document.body.style.background = isDark ? '#080c14' : '#f1f5f9';
+    document.body.style.color = isDark ? '#f0f4ff' : '#0f172a';
     createTileLayer(isDark);
 }
 
 function updateMapVisibility() {
     const topX = document.getElementById('topX').value ? parseInt(document.getElementById('topX').value) : null;
-    const showHS = document.getElementById('gradeHS').checked;
-    const showMS = document.getElementById('gradeMS').checked;
     const selectedState = document.getElementById('stateFilter').value;
     
     const filteredTeams = allTeams.filter(team => {
         let passesFilter = true;
         let rankNum = parseInt(team.rank);
-        let grade = team.rawScoreRow['Grade Level'] || '';
-        
-        if (topX && rankNum && rankNum > topX) {
-            passesFilter = false;
-        }
-
-        if (passesFilter) {
-            if (grade.toUpperCase().includes('HS') && !showHS) {
-                passesFilter = false;
-            } else if ((grade.toUpperCase().includes('MS') || grade.toUpperCase().includes('ES')) && !showMS) {
-                passesFilter = false;
-            } else if (!grade && (!showHS && !showMS)) {
-                passesFilter = false;
-            }
-        }
-
-        if (passesFilter && selectedState) {
-            if (team.stateCode !== selectedState) {
-                passesFilter = false;
-            }
-        }
+        if (topX && rankNum && rankNum > topX) passesFilter = false;
+        if (passesFilter && selectedState && team.stateCode !== selectedState) passesFilter = false;
 
         const circleData = allTeams.find(c => c.name === team.name);
         if (circleData) {
@@ -1284,7 +1913,6 @@ function updateMapVisibility() {
                 if (markerLayerGroup.hasLayer(circleData.circleRef)) markerLayerGroup.removeLayer(circleData.circleRef);
             }
         }
-
         return passesFilter;
     });
     
@@ -1297,37 +1925,25 @@ function zoomToTeam(lat, lon, teamName) {
     map.setView([lat, lon], 11);
     setTimeout(() => {
         const team = allTeams.find(t => t.name === teamName);
-        if (team && team.circleRef) {
-            team.circleRef.openPopup();
-        }
+        if (team && team.circleRef) team.circleRef.openPopup();
     }, 300);
     const view = document.getElementById('rankingViewSelect').value;
     if (view !== 'overall') return;
-    document.querySelectorAll('.ranking-item').forEach(item => {
-        item.classList.remove('selected');
-    });
+    document.querySelectorAll('.ranking-item').forEach(item => item.classList.remove('selected'));
     const safeName = teamName.replace(/'/g, "\\'");
     const rankItem = document.querySelector(`#topRankings .ranking-item[data-team-name="${safeName}"]`);
-    if (rankItem) {
-        rankItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        rankItem.classList.add('selected');
-    }
+    if (rankItem) { rankItem.scrollIntoView({ behavior: 'smooth', block: 'center' }); rankItem.classList.add('selected'); }
 }
 
 function handleSearchInput() {
     const el = document.getElementById('teamSearch');
     const q = el.value.trim().toLowerCase();
     const suggestionsDiv = document.getElementById('suggestions');
-    document.querySelectorAll('.ranking-item.selected').forEach(item => {
-        item.classList.remove('selected');
-    });
+    document.querySelectorAll('.ranking-item.selected').forEach(item => item.classList.remove('selected'));
     allTeams.forEach(t => {
         if (t.circleRef && markerLayerGroup.hasLayer(t.circleRef)) {
-            if (t.name.toLowerCase().includes(q)) {
-                t.circleRef.setStyle({ opacity: 1, fillOpacity: 0.8 });
-            } else {
-                t.circleRef.setStyle({ opacity: 0.12, fillOpacity: 0.05 });
-            }
+            if (t.name.toLowerCase().includes(q)) { t.circleRef.setStyle({ opacity: 1, fillOpacity: 0.8 }); }
+            else { t.circleRef.setStyle({ opacity: 0.12, fillOpacity: 0.05 }); }
         }
     });
     if (!q) {
@@ -1337,21 +1953,13 @@ function handleSearchInput() {
         return;
     }
     const matches = allTeams.filter(t => t.name.toLowerCase().includes(q));
-    if (matches.length === 0) {
-        suggestionsDiv.classList.add('hidden');
-        suggestionsDiv.innerHTML = '';
-        return;
-    }
-    const itemsHTML = matches.map(m => `<div class="suggestion-item" onclick="selectSuggestion('${m.name.replace(/'/g,"\\")}')">${m.name}</div>`).join('');
-    suggestionsDiv.innerHTML = itemsHTML;
+    if (matches.length === 0) { suggestionsDiv.classList.add('hidden'); suggestionsDiv.innerHTML = ''; return; }
+    suggestionsDiv.innerHTML = matches.map(m => `<div class="suggestion-item" onclick="selectSuggestion('${m.name.replace(/'/g,"\\'")}') ">${m.name}</div>`).join('');
     suggestionsDiv.classList.remove('hidden');
     const firstMatch = matches[0];
-    if (firstMatch && firstMatch.circleRef) {
-        map.setView(firstMatch.circleRef.getLatLng(), 9);
-    }
-    const rect = el.getBoundingClientRect();
-    suggestionsDiv.style.left = (el.offsetLeft) + 'px';
-    suggestionsDiv.style.top = (el.offsetTop + el.offsetHeight + 6) + 'px';
+    if (firstMatch && firstMatch.circleRef) map.setView(firstMatch.circleRef.getLatLng(), 9);
+    suggestionsDiv.style.left = '0';
+    suggestionsDiv.style.top = (el.offsetHeight + 6) + 'px';
     suggestionsDiv.style.width = el.offsetWidth + 'px';
 }
 
@@ -1365,46 +1973,326 @@ function selectSuggestion(name) {
 
 document.addEventListener('click', (e) => {
     const s = document.getElementById('suggestions');
-    if (s) {
-        const wrapper = document.querySelector('.search-wrapper');
-        if (!wrapper && !wrapper.contains(e.target)) {
-            s.classList.add('hidden');
-        } else if (wrapper && !wrapper.contains(e.target)) {
-            s.classList.add('hidden');
-        }
-    }
+    const wrapper = document.querySelector('.search-wrapper');
+    if (s && wrapper && !wrapper.contains(e.target)) s.classList.add('hidden');
+    [document.getElementById('predSug1'), document.getElementById('predSug2')].forEach(sug => {
+        if (sug && !sug.contains(e.target)) sug.classList.add('hidden');
+    });
 });
 
 window.addEventListener('resize', () => {
-    const el = document.getElementById('teamSearch');
-    const s = document.getElementById('suggestions');
-    if (s && !s.classList.contains('hidden')) {
-        s.style.left = el.offsetLeft + 'px';
-        s.style.top = (el.offsetTop + el.offsetHeight + 6) + 'px';
-    }
     const openPopup = document.querySelector('.leaflet-popup');
-    if (openPopup) {
-        hideNearbyTeamsPanel();
-    }
+    if (openPopup) hideNearbyTeamsPanel();
 });
 
-document.getElementById('radiusVal').innerText = document.getElementById('radiusSlider').value;
+document.getElementById('radiusVal').innerText = document.getElementById('radiusSlider').value + '×';
 
 function calculateStateRanks() {
     const teamsByState = {};
     allTeams.forEach(team => {
-        let state = team.stateCode;
-        if (state) {
-            if (!teamsByState[state]) teamsByState[state] = [];
-            teamsByState[state].push(team);
+        if (team.stateCode) {
+            if (!teamsByState[team.stateCode]) teamsByState[team.stateCode] = [];
+            teamsByState[team.stateCode].push(team);
         }
     });
     Object.keys(teamsByState).forEach(state => {
         teamsByState[state].sort((a, b) => b.score - a.score);
-        teamsByState[state].forEach((team, index) => {
-            team.stateRank = index + 1;
-        });
+        teamsByState[state].forEach((team, index) => { team.stateRank = index + 1; });
     });
+}
+
+function openTools() {
+  document.getElementById('toolsModal').classList.add('visible');
+  document.getElementById('modalOverlay').classList.add('visible');
+  document.getElementById('btnTools').classList.add('active');
+}
+function closeTools() {
+  document.getElementById('toolsModal').classList.remove('visible');
+  document.getElementById('modalOverlay').classList.remove('visible');
+  document.getElementById('btnTools').classList.remove('active');
+}
+function switchToolTab(tab) {
+  document.querySelectorAll('.tool-tab').forEach((t, i) => {
+    t.classList.toggle('active', ['calculator','predictor','setadj'][i] === tab);
+  });
+  document.getElementById('toolCalculator').classList.toggle('active', tab === 'calculator');
+  document.getElementById('toolPredictor').classList.toggle('active', tab === 'predictor');
+  document.getElementById('toolSetAdj').classList.toggle('active', tab === 'setadj');
+}
+
+function populateSetDropdowns() {
+  const sorted = [...SET_ADJUSTMENTS].sort((a,b) => b.pg - a.pg);
+  ['calcSetName','predSetName'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">-- Select Set --</option>';
+    sorted.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.set;
+      opt.textContent = `${s.set} (P/G: ${s.pg.toFixed(2)})`;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+function updateCalcSetAdj() {
+  const adj = SET_ADJ_MAP[document.getElementById('calcSetName').value];
+  const display = document.getElementById('calcSetAdjDisplay');
+  if (adj) {
+    display.style.display = 'flex';
+    document.getElementById('calcPGAdj').textContent = adj.pg.toFixed(4);
+    document.getElementById('calcPPBAdj').textContent = adj.ppb.toFixed(4);
+  } else { display.style.display = 'none'; }
+}
+
+function updatePredSetAdj() {
+  const adj = SET_ADJ_MAP[document.getElementById('predSetName').value];
+  const display = document.getElementById('predSetAdjDisplay');
+  if (adj) {
+    display.style.display = 'flex';
+    document.getElementById('predPGAdj').textContent = adj.pg.toFixed(4);
+    document.getElementById('predPPBAdj').textContent = adj.ppb.toFixed(4);
+  } else { display.style.display = 'none'; }
+}
+
+// ── SET ADJ TABLE ──
+function renderAdjTable() {
+  const sorted = [...SET_ADJUSTMENTS].sort((a,b) => b.pg - a.pg);
+  document.getElementById('adjTableBody').innerHTML = sorted.map(s =>
+    `<tr onclick="loadSetFromTable('${s.set.replace(/'/g,"\\'")}')"><td>${s.set}</td><td class="adj-num">${s.pg.toFixed(4)}</td><td class="adj-num">${s.ppb.toFixed(4)}</td></tr>`
+  ).join('');
+}
+
+function loadSetFromTable(setName) {
+  document.getElementById('calcSetName').value = setName;
+  document.getElementById('predSetName').value = setName;
+  updateCalcSetAdj();
+  updatePredSetAdj();
+  switchToolTab('calculator');
+}
+
+function initCalcRows() {
+  document.getElementById('calcRows').innerHTML = '';
+  calcRowCount = 0;
+  addCalcRow();
+}
+
+function addCalcRow() {
+  calcRowCount++;
+  const id = calcRowCount;
+  const div = document.createElement('div');
+  div.id = `calcRow${id}`;
+  div.className = 'calc-row-card';
+  div.innerHTML = `
+    <div class="calc-row-header">
+      <span class="calc-row-title">Result #${id}</span>
+      ${id > 1 ? `<button class="calc-row-remove" onclick="removeCalcRow(${id})">✕</button>` : ''}
+    </div>
+    <div class="calc-grid">
+      <div class="calc-field"><label>Powers</label><input type="number" id="cr${id}_powers" placeholder="0" min="0" step="1"></div>
+      <div class="calc-field"><label>Tens</label><input type="number" id="cr${id}_tens" placeholder="0" min="0" step="1"></div>
+    </div>
+    <div class="calc-grid">
+      <div class="calc-field"><label>Negs</label><input type="number" id="cr${id}_negs" placeholder="0" min="0" step="1"></div>
+      <div class="calc-field"><label>PPB</label><input type="number" id="cr${id}_ppb" placeholder="0" min="0" step="0.01"></div>
+    </div>
+    <div class="calc-grid">
+      <div class="calc-field"><label>TUH</label><input type="number" id="cr${id}_tuh" placeholder="20" min="1" step="1" value="20"></div>
+      <div class="calc-field"><label>Median PPB</label><input type="number" id="cr${id}_medppb" placeholder="16" min="0" step="0.1" value="16"></div>
+    </div>
+    <div class="calc-field"><label>Median P/G</label><input type="number" id="cr${id}_medpg" placeholder="3" min="0" step="0.1" value="3"></div>
+  `;
+  document.getElementById('calcRows').appendChild(div);
+}
+
+function removeCalcRow(id) {
+  const el = document.getElementById(`calcRow${id}`);
+  if (el) el.remove();
+}
+
+function calcTournamentScore(powers, tens, negs, ppb, tuh, medPPB, medPG, pgAdj, ppbAdj) {
+  const p = powers / tuh * 20 + pgAdj;
+  const t = tens / tuh * 20 + 2/5 * pgAdj;
+  const n = negs / tuh * 20;
+  return (25/4*p + 25/8*t + 25/12*(ppb+ppbAdj) + 3/8*(medPPB+ppbAdj) + 5/2*(medPG+pgAdj) - n - 20) / 2;
+}
+
+function compositeScore(scores) {
+  if (!scores.length) return null;
+  const sorted = [...scores].sort((a,b) => b - a);
+  if (sorted.length === 1) return sorted[0];
+  if (sorted.length === 2) return (2*sorted[0] + sorted[1]) / 3;
+  return (3*sorted[0] + 2*sorted[1] + sorted[2]) / 6;
+}
+
+function runCalculator() {
+  const setName = document.getElementById('calcSetName').value;
+  const adj = SET_ADJ_MAP[setName] || {pg:0, ppb:0};
+  const rowEls = document.getElementById('calcRows').querySelectorAll('[id^="calcRow"]');
+  const results = [];
+  rowEls.forEach(row => {
+    const id = row.id.replace('calcRow','');
+    const powers = parseFloat(document.getElementById(`cr${id}_powers`)?.value) || 0;
+    const tens   = parseFloat(document.getElementById(`cr${id}_tens`)?.value) || 0;
+    const negs   = parseFloat(document.getElementById(`cr${id}_negs`)?.value) || 0;
+    const ppb    = parseFloat(document.getElementById(`cr${id}_ppb`)?.value);
+    const tuh    = parseFloat(document.getElementById(`cr${id}_tuh`)?.value) || 20;
+    const medPPB = parseFloat(document.getElementById(`cr${id}_medppb`)?.value) || 16;
+    const medPG  = parseFloat(document.getElementById(`cr${id}_medpg`)?.value) || 3;
+    if (isNaN(ppb)) return;
+    const score = calcTournamentScore(powers, tens, negs, ppb, tuh, medPPB, medPG, adj.pg, adj.ppb);
+    if (!isNaN(score)) results.push({id, powers, tens, negs, ppb, score, tuh});
+  });
+  if (!results.length) { alert('Please fill in at least one result (PPB required)'); return; }
+  const final = compositeScore(results.map(r => r.score));
+  document.getElementById('calcFinalScore').textContent = final.toFixed(2);
+  document.getElementById('calcScoreSub').textContent = `Based on ${results.length} result${results.length>1?'s':''} · set: ${setName || 'none selected'}`;
+  const breakdown = document.getElementById('calcResultsBreakdown');
+  const classes = ['green','teal','amber'];
+  breakdown.innerHTML = results.map((r,i) => `
+    <div class="calc-results-row">
+      <div class="calc-stat-box"><div class="calc-stat-label">Result #${r.id} Score</div><div class="calc-stat-value ${classes[i]||''}">${r.score.toFixed(3)}</div></div>
+      <div class="calc-stat-box"><div class="calc-stat-label">P/TU · T/TU · N/TU</div><div class="calc-stat-value" style="font-size:12px;">${(r.powers/r.tuh).toFixed(2)} · ${(r.tens/r.tuh).toFixed(2)} · ${(r.negs/r.tuh).toFixed(2)}</div></div>
+    </div>
+  `).join('');
+  document.getElementById('calcOutput').style.display = 'block';
+  document.getElementById('calcOutput').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function handlePredSearch(num) {
+  const inputEl = document.getElementById(`predTeam${num}`);
+  const sugEl = document.getElementById(`predSug${num}`);
+  const q = inputEl.value.trim().toLowerCase();
+  if (!q || !allTeams.length) { sugEl.classList.add('hidden'); return; }
+  const matches = allTeams.filter(t => t.name.toLowerCase().includes(q)).slice(0, 8);
+  if (!matches.length) { sugEl.classList.add('hidden'); return; }
+  sugEl.innerHTML = matches.map(m =>
+    `<div class="suggestion-item" onclick="selectPredTeam(${num},'${m.name.replace(/'/g,"\\'")}',${m.score})"><span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11px;margin-right:8px;">#${m.rank}</span>${m.name}<span style="margin-left:auto;color:var(--text-muted);font-family:var(--font-mono);font-size:11px;">${m.score.toFixed(1)}</span></div>`
+  ).join('');
+  sugEl.classList.remove('hidden');
+}
+
+function selectPredTeam(num, name, score) {
+  document.getElementById(`predTeam${num}`).value = name;
+  document.getElementById(`predScore${num}`).value = score.toFixed(2);
+  document.getElementById(`predSug${num}`).classList.add('hidden');
+}
+
+function loadTeamInPredictor(name, score) {
+  const t1 = document.getElementById('predTeam1').value;
+  if (!t1) {
+    document.getElementById('predTeam1').value = name;
+    document.getElementById('predScore1').value = score.toFixed(2);
+  } else {
+    document.getElementById('predTeam2').value = name;
+    document.getElementById('predScore2').value = score.toFixed(2);
+  }
+  openTools();
+  switchToolTab('predictor');
+}
+
+function normCDF(x, mean, std) {
+  const z = (x - mean) / std;
+  const t = 1 / (1 + 0.2315419 * Math.abs(z));
+  const d = 0.3989423 * Math.exp(-z*z/2);
+  const p = d*t*(0.3193815 + t*(-0.3565638 + t*(1.7814779 + t*(-1.8212560 + t*1.3302744))));
+  return z > 0 ? 1-p : p;
+}
+
+function runPredictor() {
+  const t1Name = document.getElementById('predTeam1').value.trim();
+  const t2Name = document.getElementById('predTeam2').value.trim();
+  
+  const t1 = allTeams.find(t => t.name === t1Name);
+  const t2 = allTeams.find(t => t.name === t2Name);
+
+  if (!t1 || !t2) {
+    alert('Please select two valid teams from the search results.');
+    return;
+  }
+
+  // 1. Get Adjustments (Check Manual Overrides first)
+  const setAdj = SET_ADJ_MAP[document.getElementById('predSetName').value] || { pg: 0, ppb: 0 };
+  const mPG = document.getElementById('manualPGAdj')?.value;
+  const mPPB = document.getElementById('manualPPBAdj')?.value;
+
+  const pgAdj = (mPG !== "" && mPG !== undefined) ? parseFloat(mPG) : setAdj.pg;
+  const ppbAdj = (mPPB !== "" && mPPB !== undefined) ? parseFloat(mPPB) : setAdj.ppb;
+
+  // 2. Helper to calculate Raw Stats based on your regression coefficients
+  const getRawData = (team, opp) => {
+    const S = team.score;
+    const OS = opp.score;
+    const A = pgAdj;
+    const B = ppbAdj;
+
+    // Predicted TU Converted (T)
+    const rawT = 1.392236342 + (0.2364522776 * S) - (0.08284500346 * OS) - (0.8254973583 * A);
+    const T = Math.max(0, rawT);
+    
+    // Power Rate (P) - Clamped between 0 and 1
+    const rawP = -0.03853106353 + (0.01074365464 * S) + (0.0009469745037 * OS) - (0.09122693486 * A);
+    const P = Math.min(1, Math.max(0, rawP));
+    
+    // Predicted PPB - Max 30
+    const rawPPB = 3.091985471 + (0.3423571112 * S) - (1.445574469 * B);
+    const predPPB = Math.min(30, Math.max(0, rawPPB));
+    
+    // Predicted Negs
+    const rawNegs = 0.1086280267 + (0.02594150228 * S);
+    const predNegs = Math.max(0, rawNegs);
+
+    return { T, P, predPPB, predNegs };
+  };
+
+  const data1 = getRawData(t1, t2);
+  const data2 = getRawData(t2, t1);
+
+  // 3. Scaling: Max 20 converted tossups total (T1_TU + T2_TU)
+  const totalConvertedTU = data1.T + data2.T;
+  const scaleFactor = totalConvertedTU > 20 ? (20 / totalConvertedTU) : 1;
+
+  // 4. Calculate Final Components and Scores
+  const processFinal = (d) => {
+    const powers = d.T * d.P * scaleFactor;
+    const tens = d.T * (1 - d.P) * scaleFactor;
+    const negs = d.predNegs * scaleFactor;
+    // Score Formula: 15(Powers) + 10(Tens) + ( (Powers+Tens) * PPB ) - 5(Negs)
+    let score = (15 * powers) + (10 * tens) + ((powers + tens) * d.predPPB) - (5 * negs);
+    return {
+      powers: Math.max(0, powers),
+      tens: Math.max(0, tens),
+      negs: Math.max(0, negs),
+      ppb: d.predPPB,
+      finalScore: Math.min(900, Math.max(0, Math.round(score)))
+    };
+  };
+
+  const final1 = processFinal(data1);
+  const final2 = processFinal(data2);
+
+  // 5. Update UI Elements
+  document.getElementById('predScoreDisplay').textContent = `${final1.finalScore} — ${final2.finalScore}`;
+  document.getElementById('predWinnerName').textContent = final1.finalScore > final2.finalScore ? t1.name : (final2.finalScore > final1.finalScore ? t2.name : 'Tie');
+
+  // Win Probability (Simple ratio of predicted scores)
+  const p1 = final1.finalScore / (final1.finalScore + final2.finalScore) || 0.5;
+  document.getElementById('predProbFill').style.width = (p1 * 100) + '%';
+  document.getElementById('predProb1Label').textContent = `${t1.name.split('(')[0]}: ${(p1*100).toFixed(1)}%`;
+  document.getElementById('predProb2Label').textContent = `${t2.name.split('(')[0]}: ${((1-p1)*100).toFixed(1)}%`;
+
+  // Update Stats Tables
+  const updateTable = (num, f) => {
+    document.getElementById(`predT${num}Powers`).textContent = f.powers.toFixed(2);
+    document.getElementById(`predT${num}Tens`).textContent   = f.tens.toFixed(2);
+    document.getElementById(`predT${num}Negs`).textContent   = f.negs.toFixed(2);
+    document.getElementById(`predT${num}PPB`).textContent    = f.ppb.toFixed(2);
+  };
+
+  updateTable(1, final1);
+  updateTable(2, final2);
+
+  document.getElementById('predOutput').style.display = 'block';
+  document.getElementById('predOutput').scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 </script>
 </body>
