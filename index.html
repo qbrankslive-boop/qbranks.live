@@ -102,7 +102,105 @@
     }
     .popup-label {
       font-size: 11px;
-      font-weight: 500;
+      font-weight: 500;function runPredictor() {
+  const t1Name = document.getElementById('predTeam1').value.trim();
+  const t2Name = document.getElementById('predTeam2').value.trim();
+
+  const t1 = allTeams.find(t => t.name === t1Name);
+  const t2 = allTeams.find(t => t.name === t2Name);
+
+  if (!t1 || !t2) {
+    alert('Please select two valid teams.');
+    return;
+  }
+
+  const setAdj = SET_ADJ_MAP[document.getElementById('predSetName').value] || { pg: 0, ppb: 0 };
+  const mPG = document.getElementById('manualPGAdj')?.value;
+  const mPPB = document.getElementById('manualPPBAdj')?.value;
+
+  const pgAdj = (mPG !== "" && mPG !== undefined) ? parseFloat(mPG) : setAdj.pg;
+  const ppbAdj = (mPPB !== "" && mPPB !== undefined) ? parseFloat(mPPB) : setAdj.ppb;
+
+  const getBackendData = (team, opp) => {
+    const S = team.score;
+    const OS = opp.score;
+    const A = pgAdj;
+    const B = ppbAdj;
+
+    // --- UPDATED COEFFICIENTS FROM NEW IMAGE ---
+    
+    // Tossups Converted Algorithm
+    const baseT = Math.max(0, 1.479067596 + (0.2235665475 * S) - (0.1000010217 * OS) - (0.61 * A));
+    
+    // Power Percent Algorithm
+    const powerRate = Math.max(0, 0.09346122173 + (0.007300739927 * S) - (0.00226119064 * OS) - (0.01895072692 * A));
+
+    // PPB Algorithm (Max 30 clamp)
+    const rawPPB = Math.min(30, Math.max(0, 2.096289077 + (0.3545426156 * S) - (1.223902125 * B)));
+    
+    // Negs Algorithm
+    const rawNegs = Math.max(0, 0.1001369352 + (0.01231981659 * S));
+
+    return {
+      rawPowers: baseT * powerRate,
+      rawTens: baseT * Math.max(0, (1 - powerRate)),
+      rawNegs: rawNegs,
+      rawPPB: rawPPB
+    };
+  };
+
+  const b1 = getBackendData(t1, t2);
+  const b2 = getBackendData(t2, t1);
+
+  // 1. Scale Powers and Tens (Global scale)
+  const totalTU = b1.rawPowers + b1.rawTens + b2.rawPowers + b2.rawTens;
+  const tuScale = totalTU > 20 ? (20 / totalTU) : 1;
+
+  const f1_p = b1.rawPowers * tuScale;
+  const f1_t = b1.rawTens * tuScale;
+  const f2_p = b2.rawPowers * tuScale;
+  const f2_t = b2.rawTens * tuScale;
+
+  // 2. Scale Negs (Individual scale - matches B11 and B18)
+  const n1Sum = b1.rawPowers + b1.rawTens + b1.rawNegs;
+  const f1_n = b1.rawNegs * (n1Sum > 20 ? (20 / n1Sum) : 1);
+
+  const n2Sum = b2.rawPowers + b2.rawTens + b2.rawNegs;
+  const f2_n = b2.rawNegs * (n2Sum > 20 ? (20 / n2Sum) : 1);
+
+  // 3. Final Scores (MROUND 5)
+  const calcScore = (p, t, n, ppb) => {
+    const raw = (p * 15) + (t * 10) - (n * 5) + (ppb * (p + t));
+    return Math.max(0, Math.round(raw / 5) * 5);
+  };
+
+  const score1 = calcScore(f1_p, f1_t, f1_n, b1.rawPPB);
+  const score2 = calcScore(f2_p, f2_t, f2_n, b2.rawPPB);
+
+  // 4. Update UI
+  document.getElementById('predScoreDisplay').textContent = `${score1} — ${score2}`;
+  document.getElementById('predWinnerName').textContent = score1 > score2 ? t1.name : (score2 > score1 ? t2.name : 'Tie');
+
+  // Win Probability (Matching B26)
+  const stdev = 180;
+  const winProb1 = score1 > score2 ? normCDF(0, score2 - score1, stdev) : 1 - normCDF(0, score1 - score2, stdev);
+
+  document.getElementById('predProbFill').style.width = (winProb1 * 100) + '%';
+  document.getElementById('predProb1Label').textContent = `${t1.name.split('(')[0]}: ${(winProb1 * 100).toFixed(1)}%`;
+  document.getElementById('predProb2Label').textContent = `${t2.name.split('(')[0]}: ${((1 - winProb1) * 100).toFixed(1)}%`;
+
+  const updateTable = (num, p, t, n, ppb) => {
+    document.getElementById(`predT${num}Powers`).textContent = p.toFixed(2);
+    document.getElementById(`predT${num}Tens`).textContent = t.toFixed(2);
+    document.getElementById(`predT${num}Negs`).textContent = n.toFixed(2);
+    document.getElementById(`predT${num}PPB`).textContent = ppb.toFixed(2);
+  };
+
+  updateTable(1, f1_p, f1_t, f1_n, b1.rawPPB);
+  updateTable(2, f2_p, f2_t, f2_n, b2.rawPPB);
+
+  document.getElementById('predOutput').style.display = 'block';
+}
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.06em;
@@ -2224,14 +2322,25 @@ function runPredictor() {
     const A = pgAdj;
     const B = ppbAdj;
 
-    const baseT = Math.max(0, 1.32932782573968 + (0.241201197247839 * S) - (0.08722768443822916 * OS) - (0.867729425092086 * A));
-    const powerRate = Math.max(0, -0.0293806378952264 + (0.0143678347509164 * S) + (0.00654725549845519 * OS) - (0.112858278098772 * A));
+    // --- UPDATED COEFFICIENTS FROM NEW IMAGE ---
+    
+    // Tossups Converted Algorithm
+    const baseT = Math.max(0, 1.479067596 + (0.2235665475 * S) - (0.1000010217 * OS) - (0.61 * A));
+    
+    // Power Percent Algorithm
+    const powerRate = Math.max(0, 0.09346122173 + (0.007300739927 * S) - (0.00226119064 * OS) - (0.01895072692 * A));
+
+    // PPB Algorithm (Max 30 clamp)
+    const rawPPB = Math.min(30, Math.max(0, 2.096289077 + (0.3545426156 * S) - (1.223902125 * B)));
+    
+    // Negs Algorithm
+    const rawNegs = Math.max(0, 0.1001369352 + (0.01231981659 * S));
 
     return {
       rawPowers: baseT * powerRate,
       rawTens: baseT * Math.max(0, (1 - powerRate)),
-      rawNegs: Math.max(0, 0.164278341775454 + (0.0511965402559401 * S)),
-      rawPPB: Math.min(30, Math.max(0, 2.40313062546175 + (0.273511336009789 * S) - (1.20086916536567 * B)))
+      rawNegs: rawNegs,
+      rawPPB: rawPPB
     };
   };
 
@@ -2247,12 +2356,10 @@ function runPredictor() {
   const f2_p = b2.rawPowers * tuScale;
   const f2_t = b2.rawTens * tuScale;
 
-  // 2. Scale Negs (Individual scale - Match B11 and B18)
-  // Team 1 Negs scale: SUM(backend!B9:B11)
+  // 2. Scale Negs (Individual scale - matches B11 and B18)
   const n1Sum = b1.rawPowers + b1.rawTens + b1.rawNegs;
   const f1_n = b1.rawNegs * (n1Sum > 20 ? (20 / n1Sum) : 1);
 
-  // Team 2 Negs scale: SUM(backend!B16:B18)
   const n2Sum = b2.rawPowers + b2.rawTens + b2.rawNegs;
   const f2_n = b2.rawNegs * (n2Sum > 20 ? (20 / n2Sum) : 1);
 
@@ -2265,7 +2372,7 @@ function runPredictor() {
   const score1 = calcScore(f1_p, f1_t, f1_n, b1.rawPPB);
   const score2 = calcScore(f2_p, f2_t, f2_n, b2.rawPPB);
 
-  // 4. UI Updates
+  // 4. Update UI
   document.getElementById('predScoreDisplay').textContent = `${score1} — ${score2}`;
   document.getElementById('predWinnerName').textContent = score1 > score2 ? t1.name : (score2 > score1 ? t2.name : 'Tie');
 
@@ -2283,6 +2390,12 @@ function runPredictor() {
     document.getElementById(`predT${num}Negs`).textContent = n.toFixed(2);
     document.getElementById(`predT${num}PPB`).textContent = ppb.toFixed(2);
   };
+
+  updateTable(1, f1_p, f1_t, f1_n, b1.rawPPB);
+  updateTable(2, f2_p, f2_t, f2_n, b2.rawPPB);
+
+  document.getElementById('predOutput').style.display = 'block';
+}
 
   updateTable(1, f1_p, f1_t, f1_n, b1.rawPPB);
   updateTable(2, f2_p, f2_t, f2_n, b2.rawPPB);
