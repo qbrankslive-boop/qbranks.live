@@ -936,9 +936,160 @@
       .pred-teams-grid, .calc-grid { grid-template-columns: 1fr; }
       #toolsModal { width: calc(100vw - 16px); }
     }
+
+    /* ── CHAMPIONSHIP POPUP ── */
+    #champOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      animation: fadeInOverlay 0.25s ease;
+    }
+    @keyframes fadeInOverlay { from { opacity:0 } to { opacity:1 } }
+
+    #champModal {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-panel);
+      width: min(420px, calc(100vw - 32px));
+      overflow: hidden;
+      animation: champSlideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes champSlideUp { from { opacity:0; transform:translateY(16px) } to { opacity:1; transform:translateY(0) } }
+
+    .champ-modal-header {
+      padding: 16px 18px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .champ-modal-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-amber);
+    }
+    .champ-modal-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 400;
+      font-family: var(--font-mono);
+    }
+
+    .champ-card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .champ-card:last-of-type { border-bottom: none; }
+    .champ-card-accent {
+      width: 3px;
+      background: rgba(245,158,11,0.55);
+      flex-shrink: 0;
+    }
+    .champ-card-body {
+      padding: 14px 18px;
+    }
+    .champ-card-div {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .champ-card-team {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .champ-modal-footer {
+      padding: 12px 18px;
+      border-top: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+    }
+    .champ-close-btn {
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--bg-highlight);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      text-align: center;
+    }
+    .champ-close-btn:hover {
+      background: var(--bg-elevated);
+      border-color: var(--border-active);
+      color: var(--text-primary);
+    }
+
+    /* ── GOLD RANKING ITEMS ── */
+    .ranking-item.champ-gold {
+      background: linear-gradient(90deg, rgba(251,191,36,0.13) 0%, rgba(251,191,36,0.03) 100%) !important;
+      border-left: 3px solid #f59e0b;
+      padding-left: 13px;
+    }
+    .ranking-item.champ-gold .ranking-number { color: #fbbf24 !important; }
+    .ranking-item.champ-gold .ranking-team { color: #fef3c7 !important; font-weight: 600 !important; }
+    .ranking-item.champ-gold .ranking-score { color: #f59e0b !important; }
+    .ranking-item.champ-gold .champ-trophy-icon {
+      font-size: 10px;
+      color: var(--accent-amber);
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+      opacity: 0.7;
+    }
   </style>
 </head>
 <body>
+
+<!-- ── CHAMPIONSHIP POPUP ── -->
+<div id="champOverlay">
+  <div id="champModal">
+    <div class="champ-modal-header">
+      <span class="champ-modal-title">Congrats to your 2026 SSNCT Champions!</span>
+    </div>
+
+    <div class="champ-card">
+      <div class="champ-card-accent"></div>
+      <div class="champ-card-body">
+        <div class="champ-card-div">Open Division</div>
+        <div class="champ-card-team">Park Tudor (IN) A</div>
+      </div>
+    </div>
+
+    <div class="champ-card">
+      <div class="champ-card-accent"></div>
+      <div class="champ-card-body">
+        <div class="champ-card-div">Traditional Public Schools Division</div>
+        <div class="champ-card-team">Russell (KY) A</div>
+      </div>
+    </div>
+
+    <div class="champ-modal-footer">
+      <button class="champ-close-btn" onclick="document.getElementById('champOverlay').style.display='none'">
+        Dismiss
+      </button>
+    </div>
+  </div>
+</div>
 
 <button id="toggleSettings" onclick="togglePanel()">☰</button>
 <button id="toggleRankings" onclick="toggleRankingsPanel()">☰</button>
@@ -1301,6 +1452,13 @@ const SSNCT_SHEET_MAP = {
   open: SSNCT_OPEN_SHEET
 };
 
+// ── CHAMPION TEAMS ──
+const CHAMP_TEAMS = ['Park Tudor (IN) A', 'Russell (KY) A'];
+
+function isChampTeam(name) {
+  return CHAMP_TEAMS.some(c => name && name.trim() === c);
+}
+
 function getCircuitFullName(code) {
     const map = {
         'MA': 'Massachusetts', 'IL': 'Illinois', 'TX': 'Texas', 'GA': 'Georgia', 'CA': 'California',
@@ -1367,7 +1525,9 @@ const accoladesData = [
     { title: "Best HS Circuit", detail: "Illinois, Strength: 22.13" },
     { title: "Best MS Circuit", detail: "Texas, Strength: 22.33" },
     { title: "Best HS Rivalry", detail: "East Chapel Hill A vs Early College at Guilford A" },
-    { title: "Best MS Rivalry", detail: "Hopkins A vs Redwood A" }
+    { title: "Best MS Rivalry", detail: "Hopkins A vs Redwood A" },
+    { title: "2026 SSNCT Open Champion", detail: "Park Tudor (IN) A" },
+    { title: "2026 SSNCT Trad. Public Schools Champion", detail: "Russell (KY) A" },
 ];
 
 let map;
@@ -1592,14 +1752,15 @@ async function loadData() {
     const maxScoreLocal = Math.max(...allTeams.map(t => t.score || 0), 0);
     for (const t of allTeams) {
       const radius = computeRadius(t.score, maxScoreLocal);
-      const color = randomColor();
+      // Gold color for champs, otherwise random
+      const color = isChampTeam(t.name) ? '#f59e0b' : randomColor();
       const popupHTML = makePopupHTML(t);
       const circle = L.circle([t.lat, t.lon], {
         radius,
         color,
         fillColor: color,
-        fillOpacity: 0.5,
-        weight: 2
+        fillOpacity: isChampTeam(t.name) ? 0.7 : 0.5,
+        weight: isChampTeam(t.name) ? 3 : 2
       }).addTo(markerLayerGroup)
         .bindPopup(popupHTML);
 
@@ -1612,7 +1773,7 @@ async function loadData() {
 
       circle.on('mouseout', function(e) {
           hideHoverTooltip();
-          e.target.setStyle({ weight: 2 });
+          e.target.setStyle({ weight: isChampTeam(t.name) ? 3 : 2 });
       });
       
       t.circleRef = circle;
@@ -1726,6 +1887,22 @@ function zoomToTeamAndOpenPopup(lat, lon, teamName) {
     zoomToTeam(lat, lon, teamName);
 }
 
+function applyChampGold() {
+  document.querySelectorAll('.ranking-item').forEach(item => {
+    const teamEl = item.querySelector('.ranking-team');
+    if (teamEl && isChampTeam(teamEl.textContent.trim())) {
+      item.classList.add('champ-gold');
+      // Add champion marker if not already there
+      if (!item.querySelector('.champ-trophy-icon')) {
+        const marker = document.createElement('span');
+        marker.className = 'champ-trophy-icon';
+        marker.textContent = '';
+        item.appendChild(marker);
+      }
+    }
+  });
+}
+
 function renderOverallRankings(teamsToShow) {
     const sorted = [...teamsToShow].sort((a,b) => {
       const ra = parseInt(a.rank) || 9999999;
@@ -1738,6 +1915,8 @@ function renderOverallRankings(teamsToShow) {
     }).join('');
     document.getElementById('topRankings').innerHTML = topRankingsHTML;
     document.querySelector('#overallRankingsContent h3').textContent = 'Overall team rankings';
+    // Apply gold highlighting after rendering
+    applyChampGold();
 }
 
 function populateStateFilter() {
@@ -1786,7 +1965,8 @@ const teamDescriptions = {
     "Northview (GA) A": "One of the best teams in Georgia and the South, Northview, fed by Rivertrail Middle School's first and second place finishes at the 2023 and 2024 MSNCT, finished second at the 2025 HSNCT to Livingston.",
     "Hazen (WA) A": "With solo player Padraig Finan, Hazen, from the Seattle metro, is the best team in the Pacific Northwest and perhaps the entire west coast.",
     "Southside (AL) A": "Southside is a very young team fed by Rainbow Middle School. Led by freshman Russ McGlaughn, the team is highly ranked in the state. Their players includes freshman Will McGlaughn and Tyler Vincent, as well as Landon Garrard, a sophmore. The team is Alabama's reigning JV champion and aiming for a varsity title.",
-
+    "Park Tudor (IN) A": "2026 SSNCT Open Division Champions",
+    "Russell (KY) A": "2026 SSNCT Traditional Public Schools Division Champions",
 };
 
 function makePopupHTML(teamObj) {
@@ -1804,12 +1984,11 @@ function makePopupHTML(teamObj) {
     if (teamObj.stateRank && teamObj.stateCode) {
         stateRankHTML = `<span class="popup-label">State rank</span><span class="popup-value">#${teamObj.stateRank} (${getCircuitFullName(teamObj.stateCode)})</span>`;
     }
-
     const safeNameForJS = teamObj.name.replace(/'/g, "\\'");
     
     const popup = `
     <div class="popup-inner">
-      <div class="popup-title">${teamObj.name}</div>
+      <div class="popup-title">${teamObj.name}}</div>
       <div class="popup-stats">
          <span class="popup-label">Score</span><span class="popup-value"><span class="score-badge">${teamObj.score.toFixed(1)}</span></span>
          <span class="popup-label">Global rank</span><span class="popup-value"><span class="rank-badge">${rankText ? '#' + rankText : '—'}</span></span>
@@ -1877,7 +2056,9 @@ function updateColors() {
     const maxScore = Math.max(...allTeams.map(t => parseFloat(t.score) || 0));
     circles.forEach(c => {
         let color;
-        if (scheme === 'random') color = randomColor();
+        // Always keep champs gold
+        if (isChampTeam(c.name)) { color = '#f59e0b'; }
+        else if (scheme === 'random') color = randomColor();
         else if (scheme === 'rank') color = getColorByRank(c.rank);
         else if (scheme === 'score') color = getColorByScore(c.score, maxScore);
         c.circle.setStyle({ color: color, fillColor: color });
@@ -1908,7 +2089,7 @@ function updateMapVisibility() {
         if (circleData) {
             if (passesFilter) {
                 if (!markerLayerGroup.hasLayer(circleData.circleRef)) markerLayerGroup.addLayer(circleData.circleRef);
-                circleData.circleRef.setStyle({ opacity:1, fillOpacity:0.8 });
+                circleData.circleRef.setStyle({ opacity:1, fillOpacity: isChampTeam(team.name) ? 0.8 : 0.8 });
                 circleData.circleRef.setPopupContent(makePopupHTML(team));
             } else {
                 if (markerLayerGroup.hasLayer(circleData.circleRef)) markerLayerGroup.removeLayer(circleData.circleRef);
@@ -2224,18 +2405,9 @@ function runPredictor() {
     const A = pgAdj;
     const B = ppbAdj;
 
-    // --- UPDATED COEFFICIENTS (IMAGE 74391b.png) ---
-    
-    // Tossups Converted Algorithm
     const baseT = Math.max(0, 1.491272913 + (0.2202947311 * S) - (0.1031910543 * OS) - (0.61 * A));
-    
-    // Power Percent Algorithm
     const powerRate = Math.max(0, 0.08757114544 + (0.007425090211 * S) - (0.00092646838 * OS) - (0.019589528 * A));
-
-    // PPB Algorithm (Max 30)
     const rawPPB = Math.min(30, Math.max(0, 2.106294749 + (0.3461580979 * S) - (1.227520587 * B)));
-    
-    // Negs Algorithm
     const rawNegs = Math.max(0, 0.08895207677 + (0.01620331944 * S));
 
     return {
@@ -2249,23 +2421,17 @@ function runPredictor() {
   const b1 = getBackendData(t1, t2);
   const b2 = getBackendData(t2, t1);
 
-  // --- NEW DOUBLE-SCALE LOGIC ---
-
-  // 1. Calculate Global Game Scale (Total Tossups converted by both teams)
   const gameTotalTU = b1.rawPowers + b1.rawTens + b2.rawPowers + b2.rawTens;
   const gameScale = gameTotalTU > 20 ? (20 / gameTotalTU) : 1;
 
-  // 2. Calculate Team 1 Strictest Multiplier
   const t1PersonalSum = b1.rawPowers + b1.rawTens + b1.rawNegs;
   const t1PersonalScale = t1PersonalSum > 20 ? (20 / t1PersonalSum) : 1;
-  const finalScale1 = Math.min(gameScale, t1PersonalScale); // Use the most restrictive
+  const finalScale1 = Math.min(gameScale, t1PersonalScale);
 
-  // 3. Calculate Team 2 Strictest Multiplier
   const t2PersonalSum = b2.rawPowers + b2.rawTens + b2.rawNegs;
   const t2PersonalScale = t2PersonalSum > 20 ? (20 / t2PersonalSum) : 1;
-  const finalScale2 = Math.min(gameScale, t2PersonalScale); // Use the most restrictive
+  const finalScale2 = Math.min(gameScale, t2PersonalScale);
 
-  // Final Values
   const f1_p = b1.rawPowers * finalScale1;
   const f1_t = b1.rawTens * finalScale1;
   const f1_n = b1.rawNegs * finalScale1;
@@ -2274,7 +2440,6 @@ function runPredictor() {
   const f2_t = b2.rawTens * finalScale2;
   const f2_n = b2.rawNegs * finalScale2;
 
-  // 4. Final Scores (MROUND 5)
   const calcScore = (p, t, n, ppb) => {
     const raw = (p * 15) + (t * 10) - (n * 5) + (ppb * (p + t));
     return Math.max(0, Math.round(raw / 5) * 5);
@@ -2283,11 +2448,9 @@ function runPredictor() {
   const score1 = calcScore(f1_p, f1_t, f1_n, b1.rawPPB);
   const score2 = calcScore(f2_p, f2_t, f2_n, b2.rawPPB);
 
-  // 5. Update UI
   document.getElementById('predScoreDisplay').textContent = `${score1} — ${score2}`;
   document.getElementById('predWinnerName').textContent = score1 > score2 ? t1.name : (score2 > score1 ? t2.name : 'Tie');
 
-  // Win Probability (NORMDIST logic)
   const stdev = 180;
   const winProb1 = score1 > score2 ? normCDF(0, score2 - score1, stdev) : 1 - normCDF(0, score1 - score2, stdev);
 
