@@ -1082,6 +1082,14 @@
         <div class="champ-card-team">Russell (KY) A</div>
       </div>
     </div>
+    
+    <div class="champ-card">
+      <div class="champ-card-accent"></div>
+      <div class="champ-card-body">
+        <div class="champ-card-div">Very Small Schools Division</div>
+        <div class="champ-card-team">New Berlin (IL) A</div>
+      </div>
+    </div>
 
     <div class="champ-modal-footer">
       <button class="champ-close-btn" onclick="document.getElementById('champOverlay').style.display='none'">
@@ -1453,7 +1461,7 @@ const SSNCT_SHEET_MAP = {
 };
 
 // ── CHAMPION TEAMS ──
-const CHAMP_TEAMS = ['Park Tudor (IN) A', 'Russell (KY) A'];
+const CHAMP_TEAMS = ['Park Tudor (IN) A', 'Russell (KY) A', 'New Berlin (IL) A'];
 
 function isChampTeam(name) {
   return CHAMP_TEAMS.some(c => name && name.trim() === c);
@@ -1527,7 +1535,8 @@ const accoladesData = [
     { title: "Best HS Rivalry", detail: "East Chapel Hill A vs Early College at Guilford A" },
     { title: "Best MS Rivalry", detail: "Hopkins A vs Redwood A" },
     { title: "2026 SSNCT Open Champion", detail: "Park Tudor (IN) A" },
-    { title: "2026 SSNCT Trad. Public Schools Champion", detail: "Russell (KY) A" },
+    { title: "2026 SSNCT Traditional Public Schools Champion", detail: "Russell (KY) A" },
+    { title: "2026 SSNCT Very Small Schools Champion", detail: "New Berlin (IL) A" },
 ];
 
 let map;
@@ -1967,6 +1976,7 @@ const teamDescriptions = {
     "Southside (AL) A": "Southside is a very young team fed by Rainbow Middle School. Led by freshman Russ McGlaughn, the team is highly ranked in the state. Their players includes freshman Will McGlaughn and Tyler Vincent, as well as Landon Garrard, a sophmore. The team is Alabama's reigning JV champion and aiming for a varsity title.",
     "Park Tudor (IN) A": "2026 SSNCT Open Division Champions",
     "Russell (KY) A": "2026 SSNCT Traditional Public Schools Division Champions",
+    "New Berlin (IL) A": "2026 SSNCT Very Small Schools Division Champions",
 };
 
 function makePopupHTML(teamObj) {
