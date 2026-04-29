@@ -1349,15 +1349,31 @@
     <div class="poll-modal-header">
       <div>
         <div class="poll-modal-title">HSNCT Team Poll</div>
-        <div class="poll-modal-sub">Select your top 10 teams in order — results are shared with all users</div>
+        <div class="poll-modal-sub">Rank your top 10 teams via Google Form — results shown in the sidebar</div>
       </div>
       <button class="poll-modal-close" onclick="closePollModal()">✕</button>
     </div>
-    <div class="poll-slots" id="pollSlots"></div>
+    <div style="padding:20px 18px;text-align:center;">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:18px;line-height:1.6;">
+        Submit your top 10 team rankings using the Google Form below. Your responses will be tallied and shown in the poll leaderboard.
+      </p>
+      <a href="https://forms.gle/apyZR2vNb3U9t7M37" target="_blank" rel="noopener" style="
+        display:inline-block;
+        padding:10px 24px;
+        background:linear-gradient(135deg,var(--accent-blue),var(--accent-violet));
+        color:#fff;
+        font-size:13px;
+        font-weight:700;
+        border-radius:var(--radius-sm);
+        text-decoration:none;
+        letter-spacing:0.03em;
+        transition:opacity 0.2s;
+      " onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+        Open Poll Form ↗
+      </a>
+    </div>
     <div class="poll-modal-footer">
-      <button class="poll-submit-btn" onclick="submitPoll()">Submit my picks</button>
-      <div class="poll-msg" id="pollMsg"></div>
-      <button class="poll-skip-btn" onclick="closePollModal()">Skip for now</button>
+      <button class="poll-skip-btn" onclick="closePollModal()">Close</button>
     </div>
   </div>
 </div>
@@ -1513,7 +1529,7 @@
         <button class="poll-tab-btn" id="pollTabMentions" onclick="switchPollTab('mentions')">Mentions</button>
       </div>
     </div>
-    <button class="poll-vote-btn" onclick="openPollModal()">+ Cast your vote</button>
+    <a href="https://forms.gle/apyZR2vNb3U9t7M37" target="_blank" rel="noopener" class="poll-vote-btn" style="text-decoration:none;display:block;">+ Cast your vote ↗</a>
     <div class="poll-votes-count" id="pollVotesCount">Loading...</div>
     <div id="pollLeaderboard"><div class="poll-empty">Loading results…</div></div>
   </div>
@@ -1661,21 +1677,31 @@
     </div>
     <div id="toolPoll" class="tool-panel">
       <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;">
-        Select your top 10 teams in order. Results are shared with all users via Google Sheets.
+        Submit your top 10 HSNCT team rankings via Google Form. Results are tallied from all submissions and displayed in the Poll tab of the rankings panel.
       </p>
-  
-      <div id="pollRows" style="display: flex; flex-direction: column; gap: 8px;">
-      <div id="pollInputsContainer"></div>
+      <a href="https://forms.gle/apyZR2vNb3U9t7M37" target="_blank" rel="noopener" style="
+        display:block;
+        width:100%;
+        padding:9px;
+        border-radius:var(--radius-sm);
+        background:linear-gradient(135deg,var(--accent-blue),var(--accent-violet));
+        color:#fff;
+        font-size:12px;
+        font-weight:700;
+        cursor:pointer;
+        letter-spacing:0.04em;
+        text-transform:uppercase;
+        text-align:center;
+        text-decoration:none;
+        transition:opacity 0.2s;
+        box-sizing:border-box;
+      " onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+        Open Poll Form ↗
+      </a>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:center;font-style:italic;">
+        Opens in a new tab — Google Form
+      </p>
     </div>
-
-  <button class="calc-btn" style="margin-top: 20px;" onclick="submitHsnctPoll()">
-    Submit to Website Memory
-  </button>
-  
-  <p id="pollStatus" style="font-size:11px; margin-top:10px; text-align:center; color:var(--accent-teal); display:none;">
-    Submitting... please wait.
-  </p>
-</div>
   </div>
 </div>
 
@@ -1738,54 +1764,7 @@ function validatePollDupes() {
 }
 
 async function submitPoll() {
-  const picks = pollSelects.map(s => s.value);
-  const filled = picks.filter(v => v);
-  const msgEl = document.getElementById('pollMsg');
-
-  if (filled.length < 10) {
-    msgEl.textContent = `Please fill all 10 slots (${10 - filled.length} remaining).`;
-    msgEl.className = 'poll-msg err';
-    return;
-  }
-  const dupes = filled.filter((v, i, a) => a.indexOf(v) !== i);
-  if (dupes.length > 0) {
-    msgEl.textContent = 'Remove duplicate teams before submitting.';
-    msgEl.className = 'poll-msg err';
-    return;
-  }
-
-  msgEl.textContent = 'Submitting…';
-  msgEl.className = 'poll-msg';
-
-  try {
-    let existing = { votes: 0, points: {}, mentions: {} };
-    try {
-      const res = await window.storage.get(POLL_STORAGE_KEY, true);
-      if (res && res.value) existing = JSON.parse(res.value);
-    } catch(e) {}
-
-    picks.forEach((team, idx) => {
-      const pts = 10 - idx;
-      existing.points[team] = (existing.points[team] || 0) + pts;
-      existing.mentions[team] = (existing.mentions[team] || 0) + 1;
-    });
-    existing.votes = (existing.votes || 0) + 1;
-
-    await window.storage.set(POLL_STORAGE_KEY, JSON.stringify(existing), true);
-
-    msgEl.textContent = 'Submitted! Thanks for voting.';
-    msgEl.className = 'poll-msg ok';
-    pollSelects.forEach(s => s.value = '');
-    setTimeout(closePollModal, 1200);
-
-    // Refresh sidebar if visible
-    if (document.getElementById('rankingViewSelect').value === 'hsnct_poll') {
-      renderPollLeaderboard(existing);
-    }
-  } catch(e) {
-    msgEl.textContent = 'Error submitting. Please try again.';
-    msgEl.className = 'poll-msg err';
-  }
+  window.open('https://forms.gle/apyZR2vNb3U9t7M37', '_blank');
 }
 
 function switchPollTab(tab) {
@@ -1799,16 +1778,46 @@ async function loadPollResults() {
   const lb = document.getElementById('pollLeaderboard');
   lb.innerHTML = '<div class="poll-empty">Loading…</div>';
   try {
-    const res = await window.storage.get(POLL_STORAGE_KEY, true);
-    if (!res || !res.value) {
+    const sheetUrl = `https://docs.google.com/spreadsheets/d/1ZiV-l0X4Hlvice0GX7CJZ5YGlXodMcdCNRGVanVzlaA/gviz/tq?tqx=out:csv&sheet=Form%20Responses%201`;
+    const resp = await fetch(sheetUrl);
+    const csvText = await resp.text();
+    // Parse without headers so we can reliably access by column index
+    const parsed = Papa.parse(csvText, { header: false, skipEmptyLines: true });
+    const rows = parsed.data;
+
+    // Row 0 is the header row — skip it; data starts at row 1
+    const dataRows = rows.slice(1);
+
+    if (!dataRows || dataRows.length === 0) {
       lb.innerHTML = '<div class="poll-empty">No votes yet — be the first!</div>';
       document.getElementById('pollVotesCount').textContent = '0 votes submitted';
       return;
     }
-    const data = JSON.parse(res.value);
-    renderPollLeaderboard(data);
+
+    const points = {};
+    const mentions = {};
+    let voteCount = 0;
+
+    dataRows.forEach(cols => {
+      // cols[0]=Timestamp, cols[1]=Email, cols[2..11]=ranks 1–10
+      const teamsSeen = new Set();
+      for (let i = 0; i < 10; i++) {
+        const team = (cols[2 + i] || '').trim();
+        if (!team) continue;
+        const pts = 10 - i; // #1=10, #2=9, …, #10=1
+        points[team] = (points[team] || 0) + pts;
+        if (!teamsSeen.has(team)) {
+          mentions[team] = (mentions[team] || 0) + 1;
+          teamsSeen.add(team);
+        }
+      }
+      voteCount++;
+    });
+
+    renderPollLeaderboard({ votes: voteCount, points, mentions });
   } catch(e) {
     lb.innerHTML = '<div class="poll-empty">Could not load results.</div>';
+    console.error('Poll load error:', e);
   }
 }
 
@@ -2989,107 +2998,60 @@ function runPredictor() {
 
   document.getElementById('predOutput').style.display = 'block';
 }
-// 1. Initialize the 10 rows when the tab is opened
-function initPollRows() {
-    const container = document.getElementById('pollInputsContainer');
-    if (container.children.length > 0) return; // Don't recreate if they exist
-
-    for (let i = 1; i <= 10; i++) {
-        container.innerHTML += `
-            <div class="pred-search-wrap" style="display:flex; align-items:center; gap:10px;">
-                <span style="font-family:var(--font-mono); font-size:12px; width:20px; color:var(--text-muted);">#${i}</span>
-                <div style="flex:1; position:relative;">
-                    <input type="text" id="poll-rank-${i}" class="calc-field" 
-                           style="width:100%; margin-bottom:0;" placeholder="Search team..." 
-                           oninput="handlePollSearch(${i})" autocomplete="off">
-                    <div id="poll-sug-${i}" class="pred-suggestions hidden"></div>
-                </div>
-            </div>`;
+function dismissChampAndOpenPoll() {
+    const overlay = document.getElementById('champOverlay');
+    if (overlay) {
+        // Smoothly fade out or remove the current SSNCT Champions modal
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.remove();
+            // Trigger the next popup in the chain
+            showHsnctPollPopup();
+        }, 200);
     }
 }
 
-// 2. Handle Searching (Reuses your existing allTeams data)
-function handlePollSearch(index) {
-    const input = document.getElementById(`poll-rank-${index}`);
-    const sugBox = document.getElementById(`poll-sug-${index}`);
-    const query = input.value.trim().toLowerCase();
-    
-    if (query.length < 2) { sugBox.classList.add('hidden'); return; }
+function showHsnctPollPopup() {
+    // 1. Create Overlay
+    const pollOverlay = document.createElement('div');
+    pollOverlay.id = 'pollOverlay';
+    pollOverlay.style = `
+        position: fixed; inset: 0; background: rgba(0,0,0,0.7); 
+        z-index: 9500; display: flex; align-items: center; 
+        justify-content: center; backdrop-filter: blur(4px);
+    `;
 
-    const matches = allTeams.filter(t => t.name.toLowerCase().includes(query)).slice(0, 5);
+    // 2. Create Modal Content
+    const pollModal = document.createElement('div');
+    pollModal.style = `
+        background: var(--bg-surface); border: 1px solid var(--border-active);
+        border-radius: var(--radius-lg); box-shadow: var(--shadow-panel);
+        width: min(400px, calc(100vw - 32px)); padding: 24px; text-align: center;
+    `;
 
-    if (matches.length > 0) {
-        sugBox.innerHTML = matches.map(t => 
-            `<div class="suggestion-item" onclick="selectPollTeam(${index}, '${t.name.replace(/'/g, "\\'")}')">${t.name}</div>`
-        ).join('');
-        sugBox.classList.remove('hidden');
-    } else {
-        sugBox.classList.add('hidden');
-    }
-}
+    pollModal.innerHTML = `
+        <h3 style="color: var(--text-primary); margin-bottom: 12px; font-size: 18px;">HSNCT Predictions Poll</h3>
+        <p style="color: var(--text-secondary); font-size: 13px; line-height: 1.6; margin-bottom: 20px;">
+            Who are your <strong>Top 10</strong> for HSNCT? Fill out the poll to see how your picks compare. 
+            Overall responses will appear on the <strong>"HSNCT Poll"</strong> Tab.
+        </p>
+        <a href="https://forms.gle/apyZR2vNb3U9t7M37" target="_blank" 
+           style="display: block; background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet)); 
+                  color: white; padding: 12px; border-radius: var(--radius-md); text-decoration: none; 
+                  font-weight: 700; margin-bottom: 12px; font-size: 13px;">
+           Fill Out the Poll
+        </a>
+        <button id="closePollBtn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px; text-decoration: underline;">
+            Maybe later
+        </button>
+    `;
 
-function selectPollTeam(index, name) {
-    document.getElementById(`poll-rank-${index}`).value = name;
-    document.getElementById(`poll-sug-${index}`).classList.add('hidden');
-}
+    pollOverlay.appendChild(pollModal);
+    document.body.appendChild(pollOverlay);
 
-// 3. Update your existing switchToolTab function to handle the 'poll' ID
-const originalSwitchTab = switchToolTab; // Backup existing function
-switchToolTab = function(tab) {
-    // Hide all panels
-    document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
-    
-    // Show selected panel
-    const target = tab === 'poll' ? 'toolPoll' : 
-                   tab === 'calculator' ? 'toolCalculator' : 
-                   tab === 'predictor' ? 'toolPredictor' : 'toolSetAdj';
-    
-    document.getElementById(target).classList.add('active');
-    
-    // Set button active (matching your HTML structure)
-    event.currentTarget.classList.add('active');
-
-    if (tab === 'poll') initPollRows();
-};
-
-// 4. THE SUBMIT FUNCTION (Using your URL)
-async function submitHsnctPoll() {
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwrc0RdJWK3xlp-Hbh8OsetCCxLF3tHtRfgUiUCvB1yanTfa9n1_4dPYPzyXeBUDDesTg/exec';
-    const status = document.getElementById('pollStatus');
-    const teams = [];
-
-    for (let i = 1; i <= 10; i++) {
-        const val = document.getElementById(`poll-rank-${i}`).value;
-        if (!val) return alert(`Please fill in your #${i} rank!`);
-        teams.push(val);
-    }
-
-    status.style.display = 'block';
-    status.innerText = "Connecting to website memory...";
-
-    try {
-      const formData = new URLSearchParams();
-      formData.append('teams', JSON.stringify(teams));
-      
-      await fetch(scriptURL, {
-          method: 'POST',
-          mode: 'no-cors', // This is key for Google Scripts
-          headers: {
-            'Content-Type': 'text/plain' // Use text/plain to skip the CORS pre-flight
-        },
-        body: JSON.stringify({ teams: teams })
-    });
-        
-        status.innerText = "Success! Your rankings are saved.";
-        setTimeout(() => { status.style.display = 'none'; }, 3000);
-        // Clear inputs
-        for (let i = 1; i <= 10; i++) document.getElementById(`poll-rank-${i}`).value = '';
-        
-    } catch (e) {
-        alert("Submission failed. Check your internet connection.");
-        status.style.display = 'none';
-    }
+    // 3. Add Close Event
+    const closeBtn = pollModal.querySelector('#closePollBtn');
+    closeBtn.onclick = () => pollOverlay.remove();
 }
 </script>
 </body>
