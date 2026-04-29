@@ -824,7 +824,6 @@
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
       padding: 12px;
-      
     }
     .pred-team-label {
       font-size: 10px; font-weight: 600; text-transform: uppercase;
@@ -1056,6 +1055,251 @@
       font-family: var(--font-mono);
       opacity: 0.7;
     }
+
+    /* ── HSNCT POLL MODAL ── */
+    #pollOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 9100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      animation: fadeInOverlay 0.25s ease;
+    }
+    #pollOverlay.visible { display: flex; }
+
+    #pollModal {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-panel);
+      width: min(480px, calc(100vw - 32px));
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      animation: champSlideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    #pollModal::-webkit-scrollbar { width: 4px; }
+    #pollModal::-webkit-scrollbar-track { background: transparent; }
+    #pollModal::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 4px; }
+
+    .poll-modal-header {
+      padding: 16px 18px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .poll-modal-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-blue-lt);
+      letter-spacing: -0.01em;
+    }
+    .poll-modal-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+    .poll-modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      flex-shrink: 0;
+      transition: color 0.15s;
+    }
+    .poll-modal-close:hover { color: var(--text-primary); }
+
+    .poll-slots { padding: 14px 18px; display: flex; flex-direction: column; gap: 7px; }
+    .poll-slot-row { display: flex; align-items: center; gap: 10px; }
+    .poll-slot-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      min-width: 20px;
+      text-align: right;
+    }
+    .poll-slot-num.top3 { color: var(--accent-amber); }
+    .poll-slot-row select {
+      flex: 1;
+      padding: 6px 28px 6px 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-family: var(--font-body);
+      color: var(--text-primary);
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%234d5d78' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .poll-slot-row select:focus { outline: none; border-color: var(--border-active); }
+    .poll-slot-row select.dupe { border-color: rgba(239,68,68,0.6); }
+
+    .poll-modal-footer {
+      padding: 14px 18px;
+      border-top: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .poll-submit-btn {
+      width: 100%;
+      padding: 9px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      font-family: var(--font-body);
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .poll-submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .poll-submit-btn:active { transform: translateY(0); }
+    .poll-skip-btn {
+      width: 100%;
+      padding: 7px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .poll-skip-btn:hover { color: var(--text-secondary); border-color: var(--border-soft); }
+    .poll-msg {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      min-height: 16px;
+    }
+    .poll-msg.ok { color: var(--accent-green); }
+    .poll-msg.err { color: #ef4444; }
+
+    /* ── POLL LEADERBOARD in sidebar ── */
+    .poll-sidebar-header {
+      padding: 12px 16px 8px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .poll-sidebar-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .poll-tab-row {
+      display: flex;
+      gap: 4px;
+    }
+    .poll-tab-btn {
+      flex: 1;
+      padding: 4px 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: all 0.15s;
+    }
+    .poll-tab-btn.active {
+      background: rgba(59,130,246,0.15);
+      color: var(--accent-blue-lt);
+      border-color: rgba(59,130,246,0.3);
+    }
+    .poll-vote-btn {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 10px 16px 0;
+      padding: 7px 10px;
+      background: rgba(59,130,246,0.1);
+      border: 1px solid rgba(59,130,246,0.25);
+      border-radius: var(--radius-sm);
+      color: var(--accent-blue-lt);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      font-family: var(--font-body);
+      text-align: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .poll-vote-btn:hover { background: rgba(59,130,246,0.18); border-color: rgba(59,130,246,0.45); }
+
+    .poll-lb-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .poll-lb-item:last-child { border-bottom: none; }
+    .poll-lb-rank {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      min-width: 22px;
+      text-align: right;
+    }
+    .poll-lb-rank.r1 { color: #f59e0b; }
+    .poll-lb-rank.r2 { color: #94a3b8; }
+    .poll-lb-rank.r3 { color: #cd7f32; }
+    .poll-lb-team {
+      flex: 1;
+      font-size: 11px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .poll-lb-bar-wrap {
+      width: 40px;
+      height: 3px;
+      background: var(--border-subtle);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .poll-lb-bar { height: 100%; background: var(--accent-blue); border-radius: 2px; }
+    .poll-lb-val {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      min-width: 28px;
+      text-align: right;
+    }
+    .poll-votes-count {
+      font-size: 10px;
+      color: var(--text-muted);
+      padding: 6px 16px 2px;
+      font-style: italic;
+    }
+    .poll-empty { font-size: 11px; color: var(--text-muted); padding: 14px 16px; text-align: center; font-style: italic; }
   </style>
 </head>
 <body>
@@ -1092,9 +1336,28 @@
     </div>
 
     <div class="champ-modal-footer">
-      <button class="champ-close-btn" onclick="document.getElementById('champOverlay').style.display='none'">
+      <button class="champ-close-btn" onclick="dismissChampAndOpenPoll()">
         Dismiss
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── HSNCT POLL MODAL ── -->
+<div id="pollOverlay">
+  <div id="pollModal">
+    <div class="poll-modal-header">
+      <div>
+        <div class="poll-modal-title">HSNCT Team Poll</div>
+        <div class="poll-modal-sub">Select your top 10 teams in order — results are shared with all users</div>
+      </div>
+      <button class="poll-modal-close" onclick="closePollModal()">✕</button>
+    </div>
+    <div class="poll-slots" id="pollSlots"></div>
+    <div class="poll-modal-footer">
+      <button class="poll-submit-btn" onclick="submitPoll()">Submit my picks</button>
+      <div class="poll-msg" id="pollMsg"></div>
+      <button class="poll-skip-btn" onclick="closePollModal()">Skip for now</button>
     </div>
   </div>
 </div>
@@ -1218,6 +1481,7 @@
     <option value="hs_circuit">HS state rankings</option>
     <option value="ms_circuit">MS state rankings</option>
     <option value="accolades">Accolades</option>
+    <option value="hsnct_poll">HSNCT Poll</option>
   </select>
 
   <div id="overallRankingsContent">
@@ -1238,6 +1502,20 @@
   <div id="accoladesContent" class="hidden">
     <h3>Accolades</h3>
     <div id="accoladesList"></div>
+  </div>
+
+  <!-- HSNCT Poll tab in sidebar -->
+  <div id="hsnctPollContent" class="hidden">
+    <div class="poll-sidebar-header">
+      <div class="poll-sidebar-title">HSNCT Poll</div>
+      <div class="poll-tab-row">
+        <button class="poll-tab-btn active" id="pollTabPoints" onclick="switchPollTab('points')">Points</button>
+        <button class="poll-tab-btn" id="pollTabMentions" onclick="switchPollTab('mentions')">Mentions</button>
+      </div>
+    </div>
+    <button class="poll-vote-btn" onclick="openPollModal()">+ Cast your vote</button>
+    <div class="poll-votes-count" id="pollVotesCount">Loading...</div>
+    <div id="pollLeaderboard"><div class="poll-empty">Loading results…</div></div>
   </div>
 </div>
 
@@ -1260,6 +1538,7 @@
       <button class="tool-tab active" onclick="switchToolTab('calculator')"> Score Calculator</button>
       <button class="tool-tab" onclick="switchToolTab('predictor')"> Game Predictor</button>
       <button class="tool-tab" onclick="switchToolTab('setadj')"> Set Adjustments</button>
+      <button class="tool-tab" onclick="switchToolTab('poll')"> HSNCT Poll</button>
     </div>
 
     <div id="toolCalculator" class="tool-panel active">
@@ -1380,10 +1659,187 @@
         </table>
       </div>
     </div>
+    <div id="toolPoll" class="tool-panel">
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;">
+        Select your top 10 teams in order. Results are shared with all users via Google Sheets.
+      </p>
+  
+      <div id="pollRows" style="display: flex; flex-direction: column; gap: 8px;">
+      <div id="pollInputsContainer"></div>
+    </div>
+
+  <button class="calc-btn" style="margin-top: 20px;" onclick="submitHsnctPoll()">
+    Submit to Website Memory
+  </button>
+  
+  <p id="pollStatus" style="font-size:11px; margin-top:10px; text-align:center; color:var(--accent-teal); display:none;">
+    Submitting... please wait.
+  </p>
+</div>
   </div>
 </div>
 
 <script>
+// ── HSNCT POLL TEAMS ──
+const POLL_TEAMS = ["Lexington (MA) A","Strake Jesuit (TX) A","Stevenson (IL) A","Northview (GA) A","Chapel Hill (NC) A","Park Tudor (IN) A","Johns Creek (GA) A","Hoover (AL) A","St. Mark's School of Texas (TX) A","Montgomery Blair (MD) A","Caddo Magnet (LA) A","Belmont (MA) A","Hazen (WA) A","Minnetonka (MN) A","Carmel (IN) A","HSMSE at CCNY (NY) A","Mission San Jose (CA) A","Lambert (GA) A","Livingston (NJ) A","Seven Lakes (TX) A","Henderson (PA) A","Fremd (IL) A","Saratoga (CA) A","Vista Del Lago (CA) A","Classen (OK) A","Del Norte (CA) A","Okemos (MI) A","University School of Nashville (TN) A","St. Mark's School of Texas (TX) B","Innovation Academy (GA) A","Bella Vista (CA) A","Thomas Jefferson Science & Tech (VA) A","Marianna (FL) A","Lightridge (VA) A","Cinco Ranch (TX) A","McLean (VA) A","Saint Francis (CA) A","Detroit Catholic Central (MI) A","West Point (AL) A","Greenhill (TX) A","Strake Jesuit (TX) C","Frazer (FL) A","Strake Jesuit (TX) B","Eastchester (NY) A","Coppell (TX) A","Thomas Jefferson Science & Tech (VA) C","St. Xavier (OH) A","Harker (CA) A","Cistercian (TX) A","Darien (CT) A","Eden Prairie (MN) A","Vista Del Lago (CA) B","Boise (ID) A","Glenbrook South (IL) A","Moravian Academy (PA) A","Great Valley (PA) A","Hunter (NY) A","Plano West (TX) A","Morgantown (WV) A","duPont Manual (KY) A","Okemos (MI) B","Belmont (MA) B","Mason (OH) A","Wayzata (MN) A","New Berlin (IL) A","Compass (VA) A","St. Joseph Central (MO) A","Minnetonka (MN) B","University School of Nashville (TN) B","Westminster (GA) A","DeBakey (TX) A","Chattahoochee (GA) A","Trinity (KY) A","Northside College Prep (IL) A","LASA (TX) A","Merrol Hyde (TN) A","Barrington (IL) A","Walker (GA) A","Archbishop Mitty (CA) A","Hanover (NH) A","West Windsor-Plainsboro North (NJ) A","Canyon Crest (CA) A","Bellarmine College Prep (CA) A","Keith Country Day (IL) A","Springfield (IL) A","Blacksburg (VA) A","Winston Churchill (MD) A","Livingston (NJ) B","Detroit Catholic Central (MI) B","North Allegheny (PA) A","Midtown (GA) A","Hunter (NY) B","Solon (OH) A","Caddo Magnet (LA) B","Northmont (OH) A","Herron (IN) A","Downingtown STEM (PA) A","IMSA (IL) A","Stanton College Prep (FL) A","BASIS McLean (VA) A","Copley (OH) A","Southside (AL) A","Maggie Walker Governor's School (VA) A","Fletcher (FL) A","Gunn (CA) A","Central Hardin (KY) A","Vista Del Lago (CA) C","Innovation Academy (GA) B","Hockaday (TX) A","Northview (GA) B","John Adams (IN) A","Morris (OK) A","Overlake (WA) A","Enloe (NC) A","BASIS Fremont (CA) A","Cinco Ranch (TX) B","Southside (SC) A","Carmel (IN) B","Hinsdale Central (IL) A","Lambert (GA) B","Clark (NV) A","HSMSE at CCNY (NY) B","Centennial (MD) A","Ransom Everglades (FL) B","Walnut Hills (OH) A","Carnegie Vanguard (TX) A","Johns Creek (GA) B","White Station (TN) A","Elkhorn (NE) A","St. John's (TX) A","Boyle County (KY) A","June Buchanan (KY) A","Round Rock (TX) A","Troy (NY) A","Francis Parker (IL) A","Seven Lakes (TX) B","Chattahoochee (GA) B","North Carolina Science and Math (NC) A","Waltham (MA) A","Stevenson (IL) B","Arcadia (CA) A","Henderson (PA) B","Normal University (IL) A","Classical Academy (CO) A","Livingston (NJ) C","Collierville (TN) A","Eden Prairie (MN) B","Elkhorn South (NE) A","Father Dueñas (GU) A","Villa Rica (GA) A","Lumpkin County (GA) A","East Hamilton (TN) A","Coronado (TX) A","North Hall (GA) A","Blake (MN) A","Oswego East (IL) A","North Oconee (GA) A","Greenhills School (MI) A","Buckhorn (AL) A","Park Hills Central (MO) A","Bishop's School (CA) A","Russellville (AR) A","Johnson Central (KY) A","Pebble Hills (TX) A","Livonia Churchill (MI) A","Eastlake (TX) A","Coronado (TX) B","Normal University (IL) B","Beckham (SC) A","Cheyenne Mountain (CO) A","Northgate (GA) A","North Central (IN) A","Thomas Jefferson Science & Tech (VA) D","Minnetonka (MN) C","North Gwinnett (GA) A","DeBakey (TX) B","Lee's Summit West (MO) A","Raleigh Charter (NC) A","Homewood-Flossmoor (IL) A","Centennial (MD) B","St. John's Jesuit (OH) A","Francis Parker (CA) A","University City (CA) A","Wayzata (MN) B","Paideia (GA) A","Providence (MN) A","Poolesville (MD) A","Barrington (IL) B","Brookline (MA) A","Shady Side (PA) A","Jesuit (LA) A","Trinity Christian (VA) A","University School (OH) A","Grand Junction (CO) A","Penn Manor (PA) A","John Adams (IN) B","Brentwood (TN) A","Waukee Northwest (IA) A","Westwood (MA) A","Fairport (NY) A","Strake Jesuit (TX) D","Del Norte (CA) B","Chapel Hill (NC) B","North Carolina Leadership (NC) A","Traverse City Central (MI) A","Olentangy Berlin (OH) A","Ocean Grove (CA) A","Montgomery Blair (MD) B","Niles Notre Dame (IL) A","Riverside (SC) A","Spring Valley (SC) A","St. Croix Prep (MN) A","Wayzata (MN) C","Hazen (AR) A","NCSSM-Morganton (NC) A","Lightridge (VA) B","Aurora (OH) A","Arab (AL) A","Lampeter-Strasburg (PA) A","Berwick (PA) A","Ottawa Hills (OH) A","Manheim Township (PA) A","Cedar Crest (PA) A","Kinkaid (TX) A","Innovation Academy (GA) C","Myers Park (NC) A","Bayless (MO) A","Niskayuna (NY) A","La Jolla (CA) A","Cy-Fair (TX) A","Greenwood (KY) A","Western Dubuque (IA) A","Pine View (FL) A","Greater Atlanta Christian (GA) A","Solanco (PA) A","Wallenpaupack (PA) A","Bellaire (TX) A","Fremd (IL) B","Chaska (MN) A","Saratoga (CA) B","Midtown Classical (FL) A","Rouse (TX) A","Memphis University School (TN) A","Ransom Everglades (FL) A","Park Hill (MO) A","Eastside (GA) A","Classical Academy (CO) B","Chattahoochee (GA) C","Cave Spring (VA) A","Eastside (SC) A","Springfield Central (MO) A","Chelsea (MI) A","Thomas Jefferson Science & Tech (VA) B","Solon (OH) B","LAMP (AL) A","Staley (MO) A","Chattanooga Arts and Sciences (TN) A","Springboro (OH) A","Darien (CT) B","Stillwater (OK) A","duPont Manual (KY) B","DeWitt (MI) A","Minnetonka (MN) D","Park Tudor (IN) B","Wilson (SC) A","St. Paul Academy (MN) A","Detroit Country Day (MI) A","Dorman (SC) A","Haynes Academy (LA) A","Copley (OH) B","Collierville (TN) B","Archbishop Mitty (CA) B","Mounds Park (MN) A","McLean (VA) B","Enloe (NC) B","Milton (FL) A","Portland (TN) A","Mexico (MO) A","Hewitt-Trussville (AL) A","Battle Ground (TN) A","University View (LA) A","Osage (MO) A","Mary Persons (GA) A","Lexington (MA) B","Dunbar (KY) A","Burnsville (MN) A","Jefferson City (MO) A","Springfield Central (MO) B","Ionia (MI) A","Kickapoo (MO) A","Hannibal (MO) A","Hudson (WI) A","Logan-Rogersville (MO) A","Maggie Walker Governor's School (VA) B","Ridgefield (WA) A","Elkhorn North (NE) A","Savannah (MO) A","BASIS Cedar Park (TX) A","Providence (NC) A","Dunbar (KY) B","Grand Junction (CO) B","Allen County-Scottsville (KY) A","Round Rock (TX) B","Park Tudor (IN) C","Carbondale (IL) A","Weld Central (CO) A","Glendale (MO) A","Armstrong (PA) A"];
+
+const POLL_STORAGE_KEY = 'hsnct-poll-results-v1';
+let pollSelects = [];
+let pollCurrentTab = 'points';
+
+// ── POLL MODAL FUNCTIONS ──
+function dismissChampAndOpenPoll() {
+  document.getElementById('champOverlay').style.display = 'none';
+  openPollModal();
+}
+
+function openPollModal() {
+  buildPollSlots();
+  document.getElementById('pollOverlay').classList.add('visible');
+  document.getElementById('pollMsg').textContent = '';
+  document.getElementById('pollMsg').className = 'poll-msg';
+}
+
+function closePollModal() {
+  document.getElementById('pollOverlay').classList.remove('visible');
+}
+
+function buildPollSlots() {
+  const container = document.getElementById('pollSlots');
+  container.innerHTML = '';
+  pollSelects = [];
+  const optionsHTML = '<option value="">— Select team —</option>' +
+    POLL_TEAMS.map(t => `<option value="${t}">${t}</option>`).join('');
+  for (let i = 1; i <= 10; i++) {
+    const row = document.createElement('div');
+    row.className = 'poll-slot-row';
+    const num = document.createElement('span');
+    num.className = 'poll-slot-num' + (i <= 3 ? ' top3' : '');
+    num.textContent = i;
+    const sel = document.createElement('select');
+    sel.innerHTML = optionsHTML;
+    sel.addEventListener('change', validatePollDupes);
+    row.appendChild(num);
+    row.appendChild(sel);
+    container.appendChild(row);
+    pollSelects.push(sel);
+  }
+}
+
+function validatePollDupes() {
+  const chosen = pollSelects.map(s => s.value).filter(v => v);
+  pollSelects.forEach(s => {
+    if (s.value && chosen.filter(v => v === s.value).length > 1) {
+      s.classList.add('dupe');
+    } else {
+      s.classList.remove('dupe');
+    }
+  });
+}
+
+async function submitPoll() {
+  const picks = pollSelects.map(s => s.value);
+  const filled = picks.filter(v => v);
+  const msgEl = document.getElementById('pollMsg');
+
+  if (filled.length < 10) {
+    msgEl.textContent = `Please fill all 10 slots (${10 - filled.length} remaining).`;
+    msgEl.className = 'poll-msg err';
+    return;
+  }
+  const dupes = filled.filter((v, i, a) => a.indexOf(v) !== i);
+  if (dupes.length > 0) {
+    msgEl.textContent = 'Remove duplicate teams before submitting.';
+    msgEl.className = 'poll-msg err';
+    return;
+  }
+
+  msgEl.textContent = 'Submitting…';
+  msgEl.className = 'poll-msg';
+
+  try {
+    let existing = { votes: 0, points: {}, mentions: {} };
+    try {
+      const res = await window.storage.get(POLL_STORAGE_KEY, true);
+      if (res && res.value) existing = JSON.parse(res.value);
+    } catch(e) {}
+
+    picks.forEach((team, idx) => {
+      const pts = 10 - idx;
+      existing.points[team] = (existing.points[team] || 0) + pts;
+      existing.mentions[team] = (existing.mentions[team] || 0) + 1;
+    });
+    existing.votes = (existing.votes || 0) + 1;
+
+    await window.storage.set(POLL_STORAGE_KEY, JSON.stringify(existing), true);
+
+    msgEl.textContent = 'Submitted! Thanks for voting.';
+    msgEl.className = 'poll-msg ok';
+    pollSelects.forEach(s => s.value = '');
+    setTimeout(closePollModal, 1200);
+
+    // Refresh sidebar if visible
+    if (document.getElementById('rankingViewSelect').value === 'hsnct_poll') {
+      renderPollLeaderboard(existing);
+    }
+  } catch(e) {
+    msgEl.textContent = 'Error submitting. Please try again.';
+    msgEl.className = 'poll-msg err';
+  }
+}
+
+function switchPollTab(tab) {
+  pollCurrentTab = tab;
+  document.getElementById('pollTabPoints').classList.toggle('active', tab === 'points');
+  document.getElementById('pollTabMentions').classList.toggle('active', tab === 'mentions');
+  loadPollResults();
+}
+
+async function loadPollResults() {
+  const lb = document.getElementById('pollLeaderboard');
+  lb.innerHTML = '<div class="poll-empty">Loading…</div>';
+  try {
+    const res = await window.storage.get(POLL_STORAGE_KEY, true);
+    if (!res || !res.value) {
+      lb.innerHTML = '<div class="poll-empty">No votes yet — be the first!</div>';
+      document.getElementById('pollVotesCount').textContent = '0 votes submitted';
+      return;
+    }
+    const data = JSON.parse(res.value);
+    renderPollLeaderboard(data);
+  } catch(e) {
+    lb.innerHTML = '<div class="poll-empty">Could not load results.</div>';
+  }
+}
+
+function renderPollLeaderboard(data) {
+  document.getElementById('pollVotesCount').textContent =
+    `${data.votes || 0} vote${data.votes !== 1 ? 's' : ''} submitted`;
+
+  const sourceMap = pollCurrentTab === 'points' ? (data.points || {}) : (data.mentions || {});
+  const entries = Object.entries(sourceMap).sort((a, b) => b[1] - a[1]).slice(0, 25);
+  const maxVal = entries.length > 0 ? entries[0][1] : 1;
+
+  const lb = document.getElementById('pollLeaderboard');
+  if (!entries.length) {
+    lb.innerHTML = '<div class="poll-empty">No votes yet — be the first!</div>';
+    return;
+  }
+
+  lb.innerHTML = entries.map(([team, val], idx) => {
+    const rank = idx + 1;
+    const rankClass = rank === 1 ? 'poll-lb-rank r1' : rank === 2 ? 'poll-lb-rank r2' : rank === 3 ? 'poll-lb-rank r3' : 'poll-lb-rank';
+    const barPct = Math.round((val / maxVal) * 100);
+    const label = pollCurrentTab === 'points' ? `${val}pt` : `${val}×`;
+    return `<div class="poll-lb-item">
+      <span class="${rankClass}">${rank}</span>
+      <span class="poll-lb-team">${team}</span>
+      <div class="poll-lb-bar-wrap"><div class="poll-lb-bar" style="width:${barPct}%"></div></div>
+      <span class="poll-lb-val">${label}</span>
+    </div>`;
+  }).join('');
+}
+
 // ── SET ADJUSTMENTS ──
 const SET_ADJUSTMENTS = [
   {set:'ORCUS',pg:0.0,ppb:3.058},
@@ -1469,7 +1925,6 @@ function isChampTeam(name) {
 
 function getCircuitFullName(code) {
     const map = {
-        // Original entries
         'MA': 'Massachusetts', 'IL': 'Illinois', 'TX': 'Texas', 'GA': 'Georgia', 'CA': 'California',
         'LA': 'Louisiana', 'MD': 'Maryland', 'IN': 'Indiana', 'NC': 'North Carolina', 'VA': 'Virginia',
         'AL': 'Alabama', 'MN': 'Minnesota', 'NJ': 'New Jersey', 'MI': 'Michigan', 'MO': 'Missouri',
@@ -1479,113 +1934,58 @@ function getCircuitFullName(code) {
         'DC': 'District of Columbia', 'ME': 'Maine', 'NH': 'New Hampshire', 'MS': 'Mississippi',
         'WV': 'West Virginia', 'ON': 'Ontario (Canada)', 'NM': 'New Mexico', 'WI': 'Wisconsin',
         'CR': 'Costa Rica', 'AB': 'Alberta (Canada)', 'NV': 'Nevada',
-
-        // New additions from your updated data
-        'SGP': 'Singapore',
-        'THA': 'Thailand',
-        'IA': 'Iowa',
-        'BAN': 'Bangladesh',
-        'VT': 'Vermont',
-        'CHN': 'China',
-        'OR': 'Oregon',
-        'RI': 'Rhode Island',
-        'MS': 'Mississippi',
-        
-        // Harmonizing South Korea
-        'ROK': 'South Korea',
-        'South Korea': 'South Korea'
+        'SGP': 'Singapore', 'THA': 'Thailand', 'IA': 'Iowa', 'BAN': 'Bangladesh', 'VT': 'Vermont',
+        'CHN': 'China', 'OR': 'Oregon', 'RI': 'Rhode Island', 'ROK': 'South Korea', 'South Korea': 'South Korea'
     };
     return map[code] || code;
 }
 
 const hsCircuitData = [
-    { rank: 1, circuit: 'IL', strength: 27.30 },
-    { rank: 2, circuit: 'TX', strength: 26.65 },
-    { rank: 3, circuit: 'CA', strength: 23.52 },
-    { rank: 4, circuit: 'GA', strength: 23.16 },
-    { rank: 5, circuit: 'MA', strength: 21.77 },
-    { rank: 6, circuit: 'NC', strength: 20.60 },
-    { rank: 7, circuit: 'IN', strength: 20.04 },
-    { rank: 8, circuit: 'AL', strength: 19.07 },
-    { rank: 9, circuit: 'VA', strength: 18.59 },
-    { rank: 10, circuit: 'NY', strength: 18.47 },
-    { rank: 11, circuit: 'MD', strength: 18.24 },
-    { rank: 12, circuit: 'LA', strength: 18.21 },
-    { rank: 13, circuit: 'MN', strength: 18.13 },
-    { rank: 14, circuit: 'NJ', strength: 17.58 },
-    { rank: 15, circuit: 'PA', strength: 17.20 },
-    { rank: 16, circuit: 'WA', strength: 16.62 },
-    { rank: 17, circuit: 'OH', strength: 16.59 },
-    { rank: 18, circuit: 'MO', strength: 16.58 },
-    { rank: 19, circuit: 'TN', strength: 16.57 },
-    { rank: 20, circuit: 'MI', strength: 16.53 },
-    { rank: 21, circuit: 'FL', strength: 16.14 },
-    { rank: 22, circuit: 'OK', strength: 15.59 },
-    { rank: 23, circuit: 'KY', strength: 15.29 },
-    { rank: 24, circuit: 'AB', strength: 13.75 },
-    { rank: 25, circuit: 'DE', strength: 13.38 },
-    { rank: 26, circuit: 'CT', strength: 12.80 },
-    { rank: 27, circuit: 'ID', strength: 12.64 },
-    { rank: 28, circuit: 'NH', strength: 12.50 },
-    { rank: 29, circuit: 'SGP', strength: 12.35 },
-    { rank: 30, circuit: 'ON', strength: 12.24 },
-    { rank: 31, circuit: 'SC', strength: 12.19 },
-    { rank: 32, circuit: 'NM', strength: 12.13 },
-    { rank: 33, circuit: 'NV', strength: 12.11 },
-    { rank: 34, circuit: 'WV', strength: 11.83 },
-    { rank: 35, circuit: 'CO', strength: 11.26 },
-    { rank: 36, circuit: 'NE', strength: 11.06 },
-    { rank: 37, circuit: 'ROK', strength: 11.05 },
-    { rank: 38, circuit: 'THA', strength: 10.34 },
-    { rank: 39, circuit: 'CR', strength: 10.26 },
-    { rank: 40, circuit: 'IA', strength: 10.20 },
-    { rank: 41, circuit: 'BAN', strength: 9.86 },
-    { rank: 42, circuit: 'VT', strength: 9.54 },
-    { rank: 43, circuit: 'DC', strength: 9.53 },
-    { rank: 44, circuit: 'WI', strength: 9.08 },
-    { rank: 45, circuit: 'ME', strength: 9.00 },
-    { rank: 46, circuit: 'MS', strength: 8.93 },
-    { rank: 47, circuit: 'AR', strength: 8.91 },
-    { rank: 48, circuit: 'CHN', strength: 8.62 }
+    { rank: 1, circuit: 'IL', strength: 27.30 },{ rank: 2, circuit: 'TX', strength: 26.65 },
+    { rank: 3, circuit: 'CA', strength: 23.52 },{ rank: 4, circuit: 'GA', strength: 23.16 },
+    { rank: 5, circuit: 'MA', strength: 21.77 },{ rank: 6, circuit: 'NC', strength: 20.60 },
+    { rank: 7, circuit: 'IN', strength: 20.04 },{ rank: 8, circuit: 'AL', strength: 19.07 },
+    { rank: 9, circuit: 'VA', strength: 18.59 },{ rank: 10, circuit: 'NY', strength: 18.47 },
+    { rank: 11, circuit: 'MD', strength: 18.24 },{ rank: 12, circuit: 'LA', strength: 18.21 },
+    { rank: 13, circuit: 'MN', strength: 18.13 },{ rank: 14, circuit: 'NJ', strength: 17.58 },
+    { rank: 15, circuit: 'PA', strength: 17.20 },{ rank: 16, circuit: 'WA', strength: 16.62 },
+    { rank: 17, circuit: 'OH', strength: 16.59 },{ rank: 18, circuit: 'MO', strength: 16.58 },
+    { rank: 19, circuit: 'TN', strength: 16.57 },{ rank: 20, circuit: 'MI', strength: 16.53 },
+    { rank: 21, circuit: 'FL', strength: 16.14 },{ rank: 22, circuit: 'OK', strength: 15.59 },
+    { rank: 23, circuit: 'KY', strength: 15.29 },{ rank: 24, circuit: 'AB', strength: 13.75 },
+    { rank: 25, circuit: 'DE', strength: 13.38 },{ rank: 26, circuit: 'CT', strength: 12.80 },
+    { rank: 27, circuit: 'ID', strength: 12.64 },{ rank: 28, circuit: 'NH', strength: 12.50 },
+    { rank: 29, circuit: 'SGP', strength: 12.35 },{ rank: 30, circuit: 'ON', strength: 12.24 },
+    { rank: 31, circuit: 'SC', strength: 12.19 },{ rank: 32, circuit: 'NM', strength: 12.13 },
+    { rank: 33, circuit: 'NV', strength: 12.11 },{ rank: 34, circuit: 'WV', strength: 11.83 },
+    { rank: 35, circuit: 'CO', strength: 11.26 },{ rank: 36, circuit: 'NE', strength: 11.06 },
+    { rank: 37, circuit: 'ROK', strength: 11.05 },{ rank: 38, circuit: 'THA', strength: 10.34 },
+    { rank: 39, circuit: 'CR', strength: 10.26 },{ rank: 40, circuit: 'IA', strength: 10.20 },
+    { rank: 41, circuit: 'BAN', strength: 9.86 },{ rank: 42, circuit: 'VT', strength: 9.54 },
+    { rank: 43, circuit: 'DC', strength: 9.53 },{ rank: 44, circuit: 'WI', strength: 9.08 },
+    { rank: 45, circuit: 'ME', strength: 9.00 },{ rank: 46, circuit: 'MS', strength: 8.93 },
+    { rank: 47, circuit: 'AR', strength: 8.91 },{ rank: 48, circuit: 'CHN', strength: 8.62 }
 ].map(c => ({...c, circuit: getCircuitFullName(c.circuit)}));
 
 const msCircuitData = [
-    { rank: 1, circuit: 'TX', strength: 21.24 },
-    { rank: 2, circuit: 'CA', strength: 18.30 },
-    { rank: 3, circuit: 'GA', strength: 17.40 },
-    { rank: 4, circuit: 'NY', strength: 12.72 },
-    { rank: 5, circuit: 'NC', strength: 12.39 },
-    { rank: 6, circuit: 'NJ', strength: 12.34 },
-    { rank: 7, circuit: 'VA', strength: 11.73 },
-    { rank: 8, circuit: 'CT', strength: 11.27 },
-    { rank: 9, circuit: 'IN', strength: 10.95 },
-    { rank: 10, circuit: 'WA', strength: 10.67 },
-    { rank: 11, circuit: 'IL', strength: 10.62 },
-    { rank: 12, circuit: 'MI', strength: 10.47 },
-    { rank: 13, circuit: 'MD', strength: 10.37 },
-    { rank: 14, circuit: 'NV', strength: 10.07 },
-    { rank: 15, circuit: 'MA', strength: 10.05 },
-    { rank: 16, circuit: 'ROK', strength: 10.04 },
-    { rank: 17, circuit: 'TN', strength: 9.78 },
-    { rank: 18, circuit: 'FL', strength: 9.62 },
-    { rank: 19, circuit: 'AL', strength: 9.28 },
-    { rank: 20, circuit: 'OK', strength: 9.01 },
-    { rank: 21, circuit: 'MN', strength: 8.85 },
-    { rank: 22, circuit: 'KY', strength: 8.76 },
-    { rank: 23, circuit: 'PA', strength: 8.71 },
-    { rank: 24, circuit: 'MO', strength: 8.54 },
-    { rank: 25, circuit: 'OH', strength: 8.52 },
-    { rank: 26, circuit: 'DC', strength: 8.41 },
-    { rank: 27, circuit: 'SC', strength: 8.41 },
-    { rank: 28, circuit: 'DE', strength: 8.38 },
-    { rank: 29, circuit: 'WI', strength: 8.21 },
-    { rank: 30, circuit: 'LA', strength: 8.13 },
-    { rank: 31, circuit: 'IA', strength: 8.08 },
-    { rank: 32, circuit: 'MS', strength: 7.25 },
-    { rank: 33, circuit: 'VT', strength: 7.06 },
-    { rank: 34, circuit: 'OR', strength: 6.85 },
-    { rank: 35, circuit: 'AR', strength: 6.61 },
-    { rank: 36, circuit: 'RI', strength: 5.38 }
+    { rank: 1, circuit: 'TX', strength: 21.24 },{ rank: 2, circuit: 'CA', strength: 18.30 },
+    { rank: 3, circuit: 'GA', strength: 17.40 },{ rank: 4, circuit: 'NY', strength: 12.72 },
+    { rank: 5, circuit: 'NC', strength: 12.39 },{ rank: 6, circuit: 'NJ', strength: 12.34 },
+    { rank: 7, circuit: 'VA', strength: 11.73 },{ rank: 8, circuit: 'CT', strength: 11.27 },
+    { rank: 9, circuit: 'IN', strength: 10.95 },{ rank: 10, circuit: 'WA', strength: 10.67 },
+    { rank: 11, circuit: 'IL', strength: 10.62 },{ rank: 12, circuit: 'MI', strength: 10.47 },
+    { rank: 13, circuit: 'MD', strength: 10.37 },{ rank: 14, circuit: 'NV', strength: 10.07 },
+    { rank: 15, circuit: 'MA', strength: 10.05 },{ rank: 16, circuit: 'ROK', strength: 10.04 },
+    { rank: 17, circuit: 'TN', strength: 9.78 },{ rank: 18, circuit: 'FL', strength: 9.62 },
+    { rank: 19, circuit: 'AL', strength: 9.28 },{ rank: 20, circuit: 'OK', strength: 9.01 },
+    { rank: 21, circuit: 'MN', strength: 8.85 },{ rank: 22, circuit: 'KY', strength: 8.76 },
+    { rank: 23, circuit: 'PA', strength: 8.71 },{ rank: 24, circuit: 'MO', strength: 8.54 },
+    { rank: 25, circuit: 'OH', strength: 8.52 },{ rank: 26, circuit: 'DC', strength: 8.41 },
+    { rank: 27, circuit: 'SC', strength: 8.41 },{ rank: 28, circuit: 'DE', strength: 8.38 },
+    { rank: 29, circuit: 'WI', strength: 8.21 },{ rank: 30, circuit: 'LA', strength: 8.13 },
+    { rank: 31, circuit: 'IA', strength: 8.08 },{ rank: 32, circuit: 'MS', strength: 7.25 },
+    { rank: 33, circuit: 'VT', strength: 7.06 },{ rank: 34, circuit: 'OR', strength: 6.85 },
+    { rank: 35, circuit: 'AR', strength: 6.61 },{ rank: 36, circuit: 'RI', strength: 5.38 }
 ].map(c => ({...c, circuit: getCircuitFullName(c.circuit)}));
 
 const accoladesData = [
@@ -1829,7 +2229,6 @@ async function loadData() {
     const maxScoreLocal = Math.max(...allTeams.map(t => t.score || 0), 0);
     for (const t of allTeams) {
       const radius = computeRadius(t.score, maxScoreLocal);
-      // Gold color for champs, otherwise random
       const color = isChampTeam(t.name) ? '#f59e0b' : randomColor();
       const popupHTML = makePopupHTML(t);
       const circle = L.circle([t.lat, t.lon], {
@@ -1969,7 +2368,6 @@ function applyChampGold() {
     const teamEl = item.querySelector('.ranking-team');
     if (teamEl && isChampTeam(teamEl.textContent.trim())) {
       item.classList.add('champ-gold');
-      // Add champion marker if not already there
       if (!item.querySelector('.champ-trophy-icon')) {
         const marker = document.createElement('span');
         marker.className = 'champ-trophy-icon';
@@ -1992,7 +2390,6 @@ function renderOverallRankings(teamsToShow) {
     }).join('');
     document.getElementById('topRankings').innerHTML = topRankingsHTML;
     document.querySelector('#overallRankingsContent h3').textContent = 'Overall team rankings';
-    // Apply gold highlighting after rendering
     applyChampGold();
 }
 
@@ -2029,10 +2426,21 @@ function switchRankingView(view) {
     document.getElementById('hsCircuitRankingsContent').classList.add('hidden');
     document.getElementById('msCircuitRankingsContent').classList.add('hidden');
     document.getElementById('accoladesContent').classList.add('hidden');
-    if (view === 'overall') { document.getElementById('overallRankingsContent').classList.remove('hidden'); updateMapVisibility(); }
-    else if (view === 'hs_circuit') document.getElementById('hsCircuitRankingsContent').classList.remove('hidden');
-    else if (view === 'ms_circuit') document.getElementById('msCircuitRankingsContent').classList.remove('hidden');
-    else if (view === 'accolades') document.getElementById('accoladesContent').classList.remove('hidden');
+    document.getElementById('hsnctPollContent').classList.add('hidden');
+
+    if (view === 'overall') {
+      document.getElementById('overallRankingsContent').classList.remove('hidden');
+      updateMapVisibility();
+    } else if (view === 'hs_circuit') {
+      document.getElementById('hsCircuitRankingsContent').classList.remove('hidden');
+    } else if (view === 'ms_circuit') {
+      document.getElementById('msCircuitRankingsContent').classList.remove('hidden');
+    } else if (view === 'accolades') {
+      document.getElementById('accoladesContent').classList.remove('hidden');
+    } else if (view === 'hsnct_poll') {
+      document.getElementById('hsnctPollContent').classList.remove('hidden');
+      loadPollResults();
+    }
 }
 
 const teamDescriptions = {
@@ -2101,7 +2509,7 @@ function makePopupHTML(teamObj) {
     
     const popup = `
     <div class="popup-inner">
-      <div class="popup-title">${teamObj.name}}</div>
+      <div class="popup-title">${teamObj.name}</div>
       <div class="popup-stats">
          <span class="popup-label">Score</span><span class="popup-value"><span class="score-badge">${teamObj.score.toFixed(1)}</span></span>
          <span class="popup-label">Global rank</span><span class="popup-value"><span class="rank-badge">${rankText ? '#' + rankText : '—'}</span></span>
@@ -2169,7 +2577,6 @@ function updateColors() {
     const maxScore = Math.max(...allTeams.map(t => parseFloat(t.score) || 0));
     circles.forEach(c => {
         let color;
-        // Always keep champs gold
         if (isChampTeam(c.name)) { color = '#f59e0b'; }
         else if (scheme === 'random') color = randomColor();
         else if (scheme === 'rank') color = getColorByRank(c.rank);
@@ -2349,7 +2756,6 @@ function updatePredSetAdj() {
   } else { display.style.display = 'none'; }
 }
 
-// ── SET ADJ TABLE ──
 function renderAdjTable() {
   const sorted = [...SET_ADJUSTMENTS].sort((a,b) => b.pg - a.pg);
   document.getElementById('adjTableBody').innerHTML = sorted.map(s =>
@@ -2582,6 +2988,103 @@ function runPredictor() {
   updateTable(2, f2_p, f2_t, f2_n, b2.rawPPB);
 
   document.getElementById('predOutput').style.display = 'block';
+}
+// 1. Initialize the 10 rows when the tab is opened
+function initPollRows() {
+    const container = document.getElementById('pollInputsContainer');
+    if (container.children.length > 0) return; // Don't recreate if they exist
+
+    for (let i = 1; i <= 10; i++) {
+        container.innerHTML += `
+            <div class="pred-search-wrap" style="display:flex; align-items:center; gap:10px;">
+                <span style="font-family:var(--font-mono); font-size:12px; width:20px; color:var(--text-muted);">#${i}</span>
+                <div style="flex:1; position:relative;">
+                    <input type="text" id="poll-rank-${i}" class="calc-field" 
+                           style="width:100%; margin-bottom:0;" placeholder="Search team..." 
+                           oninput="handlePollSearch(${i})" autocomplete="off">
+                    <div id="poll-sug-${i}" class="pred-suggestions hidden"></div>
+                </div>
+            </div>`;
+    }
+}
+
+// 2. Handle Searching (Reuses your existing allTeams data)
+function handlePollSearch(index) {
+    const input = document.getElementById(`poll-rank-${index}`);
+    const sugBox = document.getElementById(`poll-sug-${index}`);
+    const query = input.value.trim().toLowerCase();
+    
+    if (query.length < 2) { sugBox.classList.add('hidden'); return; }
+
+    const matches = allTeams.filter(t => t.name.toLowerCase().includes(query)).slice(0, 5);
+
+    if (matches.length > 0) {
+        sugBox.innerHTML = matches.map(t => 
+            `<div class="suggestion-item" onclick="selectPollTeam(${index}, '${t.name.replace(/'/g, "\\'")}')">${t.name}</div>`
+        ).join('');
+        sugBox.classList.remove('hidden');
+    } else {
+        sugBox.classList.add('hidden');
+    }
+}
+
+function selectPollTeam(index, name) {
+    document.getElementById(`poll-rank-${index}`).value = name;
+    document.getElementById(`poll-sug-${index}`).classList.add('hidden');
+}
+
+// 3. Update your existing switchToolTab function to handle the 'poll' ID
+const originalSwitchTab = switchToolTab; // Backup existing function
+switchToolTab = function(tab) {
+    // Hide all panels
+    document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+    
+    // Show selected panel
+    const target = tab === 'poll' ? 'toolPoll' : 
+                   tab === 'calculator' ? 'toolCalculator' : 
+                   tab === 'predictor' ? 'toolPredictor' : 'toolSetAdj';
+    
+    document.getElementById(target).classList.add('active');
+    
+    // Set button active (matching your HTML structure)
+    event.currentTarget.classList.add('active');
+
+    if (tab === 'poll') initPollRows();
+};
+
+// 4. THE SUBMIT FUNCTION (Using your URL)
+async function submitHsnctPoll() {
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwwBtaPBDhjdSVSPsJ_y0A94qOmw_8K1bCsRQtSB8-YOY_fSkufxsRlO988C_euzc9BOA/exec';
+    const status = document.getElementById('pollStatus');
+    const teams = [];
+
+    for (let i = 1; i <= 10; i++) {
+        const val = document.getElementById(`poll-rank-${i}`).value;
+        if (!val) return alert(`Please fill in your #${i} rank!`);
+        teams.push(val);
+    }
+
+    status.style.display = 'block';
+    status.innerText = "Connecting to website memory...";
+
+    try {
+        await fetch(scriptURL, {
+            method: 'POST',
+            mode: 'no-cors', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ teams: teams })
+        });
+        
+        status.innerText = "Success! Your rankings are saved.";
+        setTimeout(() => { status.style.display = 'none'; }, 3000);
+        // Clear inputs
+        for (let i = 1; i <= 10; i++) document.getElementById(`poll-rank-${i}`).value = '';
+        
+    } catch (e) {
+        alert("Submission failed. Check your internet connection.");
+        status.style.display = 'none';
+    }
 }
 </script>
 </body>
