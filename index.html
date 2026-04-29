@@ -3055,7 +3055,7 @@ switchToolTab = function(tab) {
 
 // 4. THE SUBMIT FUNCTION (Using your URL)
 async function submitHsnctPoll() {
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwZE0vYIDrwAr8a5gO2KZhR58wOkalRwfUEds9bthe-889IyTAmpUSZtbFzLHoT2WiLyg/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwrc0RdJWK3xlp-Hbh8OsetCCxLF3tHtRfgUiUCvB1yanTfa9n1_4dPYPzyXeBUDDesTg/exec';
     const status = document.getElementById('pollStatus');
     const teams = [];
 
@@ -3074,9 +3074,12 @@ async function submitHsnctPoll() {
       
       await fetch(scriptURL, {
           method: 'POST',
-          mode: 'no-cors',
-          body: formData
-      });
+          mode: 'no-cors', // This is key for Google Scripts
+          headers: {
+            'Content-Type': 'text/plain' // Use text/plain to skip the CORS pre-flight
+        },
+        body: JSON.stringify({ teams: teams })
+    });
         
         status.innerText = "Success! Your rankings are saved.";
         setTimeout(() => { status.style.display = 'none'; }, 3000);
