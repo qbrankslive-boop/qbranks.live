@@ -173,7 +173,7 @@
       width: var(--panel-w);
       max-height: calc(100vh - var(--panel-gap) * 2);
       overflow-y: auto;
-      transition: opacity 0.2s, transform 0.2s;
+      transition: opacity 0.2s, trans 0.2s;
     }
     .control-panel.hidden {
       display: none;
@@ -364,7 +364,7 @@
       width: 272px;
       max-height: calc(100vh - var(--panel-gap) * 2);
       overflow-y: auto;
-      transition: opacity 0.2s, transform 0.2s;
+      transition: opacity 0.2s, trans 0.2s;
     }
     .rankings-panel.hidden { display: none; }
     .rankings-panel::-webkit-scrollbar { width: 4px; }
@@ -1117,37 +1117,6 @@
     }
     .poll-modal-close:hover { color: var(--text-primary); }
 
-    .poll-slots { padding: 14px 18px; display: flex; flex-direction: column; gap: 7px; }
-    .poll-slot-row { display: flex; align-items: center; gap: 10px; }
-    .poll-slot-num {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-      min-width: 20px;
-      text-align: right;
-    }
-    .poll-slot-num.top3 { color: var(--accent-amber); }
-    .poll-slot-row select {
-      flex: 1;
-      padding: 6px 28px 6px 10px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border-soft);
-      border-radius: var(--radius-sm);
-      font-size: 12px;
-      font-family: var(--font-body);
-      color: var(--text-primary);
-      appearance: none;
-      -webkit-appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%234d5d78' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-      cursor: pointer;
-      transition: border-color 0.15s;
-    }
-    .poll-slot-row select:focus { outline: none; border-color: var(--border-active); }
-    .poll-slot-row select.dupe { border-color: rgba(239,68,68,0.6); }
-
     .poll-modal-footer {
       padding: 14px 18px;
       border-top: 1px solid var(--border-subtle);
@@ -1210,6 +1179,7 @@
     .poll-tab-row {
       display: flex;
       gap: 4px;
+      flex-wrap: wrap;
     }
     .poll-tab-btn {
       flex: 1;
@@ -1225,6 +1195,7 @@
       cursor: pointer;
       font-family: var(--font-body);
       transition: all 0.15s;
+      white-space: nowrap;
     }
     .poll-tab-btn.active {
       background: rgba(59,130,246,0.15);
@@ -1300,6 +1271,93 @@
       font-style: italic;
     }
     .poll-empty { font-size: 11px; color: var(--text-muted); padding: 14px 16px; text-align: center; font-style: italic; }
+
+    /* ── BROWSE RESPONSES ── */
+    .poll-browse-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .poll-browse-btn {
+      padding: 4px 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: background 0.1s, color 0.1s;
+    }
+    .poll-browse-btn:hover:not(:disabled) { background: var(--bg-highlight); color: var(--text-primary); }
+    .poll-browse-btn:disabled { opacity: 0.3; cursor: default; }
+    .poll-browse-counter {
+      flex: 1;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .poll-ballot-card {
+      margin: 10px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .poll-ballot-header {
+      padding: 7px 12px;
+      background: var(--bg-highlight);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .poll-ballot-anon {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+    .poll-ballot-ts {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .poll-ballot-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .poll-ballot-item:last-child { border-bottom: none; }
+    .poll-ballot-pos {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      min-width: 18px;
+      text-align: right;
+    }
+    .poll-ballot-pos.top3 { color: var(--accent-amber); }
+    .poll-ballot-team {
+      flex: 1;
+      font-size: 11px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .poll-ballot-pts {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+    }
   </style>
 </head>
 <body>
@@ -1527,11 +1585,26 @@
       <div class="poll-tab-row">
         <button class="poll-tab-btn active" id="pollTabPoints" onclick="switchPollTab('points')">Points</button>
         <button class="poll-tab-btn" id="pollTabMentions" onclick="switchPollTab('mentions')">Mentions</button>
+        <button class="poll-tab-btn" id="pollTabBrowse" onclick="switchPollTab('browse')">Browse</button>
       </div>
     </div>
     <a href="https://forms.gle/apyZR2vNb3U9t7M37" target="_blank" rel="noopener" class="poll-vote-btn" style="text-decoration:none;display:block;">+ Cast your vote ↗</a>
     <div class="poll-votes-count" id="pollVotesCount">Loading...</div>
-    <div id="pollLeaderboard"><div class="poll-empty">Loading results…</div></div>
+
+    <!-- Leaderboard view -->
+    <div id="pollLeaderboardView">
+      <div id="pollLeaderboard"><div class="poll-empty">Loading results…</div></div>
+    </div>
+
+    <!-- Browse responses view -->
+    <div id="pollBrowseView" class="hidden">
+      <div class="poll-browse-nav">
+        <button class="poll-browse-btn" id="pollBrowsePrev" onclick="changePollResponse(-1)" disabled>← Prev</button>
+        <span class="poll-browse-counter" id="pollBrowseCounter">— / —</span>
+        <button class="poll-browse-btn" id="pollBrowseNext" onclick="changePollResponse(1)" disabled>Next →</button>
+      </div>
+      <div id="pollBallotContainer"><div class="poll-empty">Loading…</div></div>
+    </div>
   </div>
 </div>
 
@@ -1709,145 +1782,12 @@
 // ── HSNCT POLL TEAMS ──
 const POLL_TEAMS = ["Lexington (MA) A","Strake Jesuit (TX) A","Stevenson (IL) A","Northview (GA) A","Chapel Hill (NC) A","Park Tudor (IN) A","Johns Creek (GA) A","Hoover (AL) A","St. Mark's School of Texas (TX) A","Montgomery Blair (MD) A","Caddo Magnet (LA) A","Belmont (MA) A","Hazen (WA) A","Minnetonka (MN) A","Carmel (IN) A","HSMSE at CCNY (NY) A","Mission San Jose (CA) A","Lambert (GA) A","Livingston (NJ) A","Seven Lakes (TX) A","Henderson (PA) A","Fremd (IL) A","Saratoga (CA) A","Vista Del Lago (CA) A","Classen (OK) A","Del Norte (CA) A","Okemos (MI) A","University School of Nashville (TN) A","St. Mark's School of Texas (TX) B","Innovation Academy (GA) A","Bella Vista (CA) A","Thomas Jefferson Science & Tech (VA) A","Marianna (FL) A","Lightridge (VA) A","Cinco Ranch (TX) A","McLean (VA) A","Saint Francis (CA) A","Detroit Catholic Central (MI) A","West Point (AL) A","Greenhill (TX) A","Strake Jesuit (TX) C","Frazer (FL) A","Strake Jesuit (TX) B","Eastchester (NY) A","Coppell (TX) A","Thomas Jefferson Science & Tech (VA) C","St. Xavier (OH) A","Harker (CA) A","Cistercian (TX) A","Darien (CT) A","Eden Prairie (MN) A","Vista Del Lago (CA) B","Boise (ID) A","Glenbrook South (IL) A","Moravian Academy (PA) A","Great Valley (PA) A","Hunter (NY) A","Plano West (TX) A","Morgantown (WV) A","duPont Manual (KY) A","Okemos (MI) B","Belmont (MA) B","Mason (OH) A","Wayzata (MN) A","New Berlin (IL) A","Compass (VA) A","St. Joseph Central (MO) A","Minnetonka (MN) B","University School of Nashville (TN) B","Westminster (GA) A","DeBakey (TX) A","Chattahoochee (GA) A","Trinity (KY) A","Northside College Prep (IL) A","LASA (TX) A","Merrol Hyde (TN) A","Barrington (IL) A","Walker (GA) A","Archbishop Mitty (CA) A","Hanover (NH) A","West Windsor-Plainsboro North (NJ) A","Canyon Crest (CA) A","Bellarmine College Prep (CA) A","Keith Country Day (IL) A","Springfield (IL) A","Blacksburg (VA) A","Winston Churchill (MD) A","Livingston (NJ) B","Detroit Catholic Central (MI) B","North Allegheny (PA) A","Midtown (GA) A","Hunter (NY) B","Solon (OH) A","Caddo Magnet (LA) B","Northmont (OH) A","Herron (IN) A","Downingtown STEM (PA) A","IMSA (IL) A","Stanton College Prep (FL) A","BASIS McLean (VA) A","Copley (OH) A","Southside (AL) A","Maggie Walker Governor's School (VA) A","Fletcher (FL) A","Gunn (CA) A","Central Hardin (KY) A","Vista Del Lago (CA) C","Innovation Academy (GA) B","Hockaday (TX) A","Northview (GA) B","John Adams (IN) A","Morris (OK) A","Overlake (WA) A","Enloe (NC) A","BASIS Fremont (CA) A","Cinco Ranch (TX) B","Southside (SC) A","Carmel (IN) B","Hinsdale Central (IL) A","Lambert (GA) B","Clark (NV) A","HSMSE at CCNY (NY) B","Centennial (MD) A","Ransom Everglades (FL) B","Walnut Hills (OH) A","Carnegie Vanguard (TX) A","Johns Creek (GA) B","White Station (TN) A","Elkhorn (NE) A","St. John's (TX) A","Boyle County (KY) A","June Buchanan (KY) A","Round Rock (TX) A","Troy (NY) A","Francis Parker (IL) A","Seven Lakes (TX) B","Chattahoochee (GA) B","North Carolina Science and Math (NC) A","Waltham (MA) A","Stevenson (IL) B","Arcadia (CA) A","Henderson (PA) B","Normal University (IL) A","Classical Academy (CO) A","Livingston (NJ) C","Collierville (TN) A","Eden Prairie (MN) B","Elkhorn South (NE) A","Father Dueñas (GU) A","Villa Rica (GA) A","Lumpkin County (GA) A","East Hamilton (TN) A","Coronado (TX) A","North Hall (GA) A","Blake (MN) A","Oswego East (IL) A","North Oconee (GA) A","Greenhills School (MI) A","Buckhorn (AL) A","Park Hills Central (MO) A","Bishop's School (CA) A","Russellville (AR) A","Johnson Central (KY) A","Pebble Hills (TX) A","Livonia Churchill (MI) A","Eastlake (TX) A","Coronado (TX) B","Normal University (IL) B","Beckham (SC) A","Cheyenne Mountain (CO) A","Northgate (GA) A","North Central (IN) A","Thomas Jefferson Science & Tech (VA) D","Minnetonka (MN) C","North Gwinnett (GA) A","DeBakey (TX) B","Lee's Summit West (MO) A","Raleigh Charter (NC) A","Homewood-Flossmoor (IL) A","Centennial (MD) B","St. John's Jesuit (OH) A","Francis Parker (CA) A","University City (CA) A","Wayzata (MN) B","Paideia (GA) A","Providence (MN) A","Poolesville (MD) A","Barrington (IL) B","Brookline (MA) A","Shady Side (PA) A","Jesuit (LA) A","Trinity Christian (VA) A","University School (OH) A","Grand Junction (CO) A","Penn Manor (PA) A","John Adams (IN) B","Brentwood (TN) A","Waukee Northwest (IA) A","Westwood (MA) A","Fairport (NY) A","Strake Jesuit (TX) D","Del Norte (CA) B","Chapel Hill (NC) B","North Carolina Leadership (NC) A","Traverse City Central (MI) A","Olentangy Berlin (OH) A","Ocean Grove (CA) A","Montgomery Blair (MD) B","Niles Notre Dame (IL) A","Riverside (SC) A","Spring Valley (SC) A","St. Croix Prep (MN) A","Wayzata (MN) C","Hazen (AR) A","NCSSM-Morganton (NC) A","Lightridge (VA) B","Aurora (OH) A","Arab (AL) A","Lampeter-Strasburg (PA) A","Berwick (PA) A","Ottawa Hills (OH) A","Manheim Township (PA) A","Cedar Crest (PA) A","Kinkaid (TX) A","Innovation Academy (GA) C","Myers Park (NC) A","Bayless (MO) A","Niskayuna (NY) A","La Jolla (CA) A","Cy-Fair (TX) A","Greenwood (KY) A","Western Dubuque (IA) A","Pine View (FL) A","Greater Atlanta Christian (GA) A","Solanco (PA) A","Wallenpaupack (PA) A","Bellaire (TX) A","Fremd (IL) B","Chaska (MN) A","Saratoga (CA) B","Midtown Classical (FL) A","Rouse (TX) A","Memphis University School (TN) A","Ransom Everglades (FL) A","Park Hill (MO) A","Eastside (GA) A","Classical Academy (CO) B","Chattahoochee (GA) C","Cave Spring (VA) A","Eastside (SC) A","Springfield Central (MO) A","Chelsea (MI) A","Thomas Jefferson Science & Tech (VA) B","Solon (OH) B","LAMP (AL) A","Staley (MO) A","Chattanooga Arts and Sciences (TN) A","Springboro (OH) A","Darien (CT) B","Stillwater (OK) A","duPont Manual (KY) B","DeWitt (MI) A","Minnetonka (MN) D","Park Tudor (IN) B","Wilson (SC) A","St. Paul Academy (MN) A","Detroit Country Day (MI) A","Dorman (SC) A","Haynes Academy (LA) A","Copley (OH) B","Collierville (TN) B","Archbishop Mitty (CA) B","Mounds Park (MN) A","McLean (VA) B","Enloe (NC) B","Milton (FL) A","Portland (TN) A","Mexico (MO) A","Hewitt-Trussville (AL) A","Battle Ground (TN) A","University View (LA) A","Osage (MO) A","Mary Persons (GA) A","Lexington (MA) B","Dunbar (KY) A","Burnsville (MN) A","Jefferson City (MO) A","Springfield Central (MO) B","Ionia (MI) A","Kickapoo (MO) A","Hannibal (MO) A","Hudson (WI) A","Logan-Rogersville (MO) A","Maggie Walker Governor's School (VA) B","Ridgefield (WA) A","Elkhorn North (NE) A","Savannah (MO) A","BASIS Cedar Park (TX) A","Providence (NC) A","Dunbar (KY) B","Grand Junction (CO) B","Allen County-Scottsville (KY) A","Round Rock (TX) B","Park Tudor (IN) C","Carbondale (IL) A","Weld Central (CO) A","Glendale (MO) A","Armstrong (PA) A"];
 
-const POLL_STORAGE_KEY = 'hsnct-poll-results-v1';
-let pollSelects = [];
+// ── POLL STATE ──
 let pollCurrentTab = 'points';
-
-// ── POLL MODAL FUNCTIONS ──
-function dismissChampAndOpenPoll() {
-  document.getElementById('champOverlay').style.display = 'none';
-  openPollModal();
-}
-
-function openPollModal() {
-  buildPollSlots();
-  document.getElementById('pollOverlay').classList.add('visible');
-  document.getElementById('pollMsg').textContent = '';
-  document.getElementById('pollMsg').className = 'poll-msg';
-}
-
-function closePollModal() {
-  document.getElementById('pollOverlay').classList.remove('visible');
-}
-
-function buildPollSlots() {
-  const container = document.getElementById('pollSlots');
-  container.innerHTML = '';
-  pollSelects = [];
-  const optionsHTML = '<option value="">— Select team —</option>' +
-    POLL_TEAMS.map(t => `<option value="${t}">${t}</option>`).join('');
-  for (let i = 1; i <= 10; i++) {
-    const row = document.createElement('div');
-    row.className = 'poll-slot-row';
-    const num = document.createElement('span');
-    num.className = 'poll-slot-num' + (i <= 3 ? ' top3' : '');
-    num.textContent = i;
-    const sel = document.createElement('select');
-    sel.innerHTML = optionsHTML;
-    sel.addEventListener('change', validatePollDupes);
-    row.appendChild(num);
-    row.appendChild(sel);
-    container.appendChild(row);
-    pollSelects.push(sel);
-  }
-}
-
-function validatePollDupes() {
-  const chosen = pollSelects.map(s => s.value).filter(v => v);
-  pollSelects.forEach(s => {
-    if (s.value && chosen.filter(v => v === s.value).length > 1) {
-      s.classList.add('dupe');
-    } else {
-      s.classList.remove('dupe');
-    }
-  });
-}
-
-async function submitPoll() {
-  window.open('https://forms.gle/apyZR2vNb3U9t7M37', '_blank');
-}
-
-function switchPollTab(tab) {
-  pollCurrentTab = tab;
-  document.getElementById('pollTabPoints').classList.toggle('active', tab === 'points');
-  document.getElementById('pollTabMentions').classList.toggle('active', tab === 'mentions');
-  loadPollResults();
-}
-
-async function loadPollResults() {
-  const lb = document.getElementById('pollLeaderboard');
-  lb.innerHTML = '<div class="poll-empty">Loading…</div>';
-  try {
-    const sheetUrl = `https://docs.google.com/spreadsheets/d/1ZiV-l0X4Hlvice0GX7CJZ5YGlXodMcdCNRGVanVzlaA/gviz/tq?tqx=out:csv&sheet=Form%20Responses%201`;
-    const resp = await fetch(sheetUrl);
-    const csvText = await resp.text();
-    // Parse without headers so we can reliably access by column index
-    const parsed = Papa.parse(csvText, { header: false, skipEmptyLines: true });
-    const rows = parsed.data;
-
-    // Row 0 is the header row — skip it; data starts at row 1
-    const dataRows = rows.slice(1);
-
-    if (!dataRows || dataRows.length === 0) {
-      lb.innerHTML = '<div class="poll-empty">No votes yet — be the first!</div>';
-      document.getElementById('pollVotesCount').textContent = '0 votes submitted';
-      return;
-    }
-
-    const points = {};
-    const mentions = {};
-    let voteCount = 0;
-
-    dataRows.forEach(cols => {
-      // cols[0]=Timestamp, cols[1]=Email, cols[2..11]=ranks 1–10
-      const teamsSeen = new Set();
-      for (let i = 0; i < 10; i++) {
-        const team = (cols[2 + i] || '').trim();
-        if (!team) continue;
-        const pts = 10 - i; // #1=10, #2=9, …, #10=1
-        points[team] = (points[team] || 0) + pts;
-        if (!teamsSeen.has(team)) {
-          mentions[team] = (mentions[team] || 0) + 1;
-          teamsSeen.add(team);
-        }
-      }
-      voteCount++;
-    });
-
-    renderPollLeaderboard({ votes: voteCount, points, mentions });
-  } catch(e) {
-    lb.innerHTML = '<div class="poll-empty">Could not load results.</div>';
-    console.error('Poll load error:', e);
-  }
-}
-
-function renderPollLeaderboard(data) {
-  document.getElementById('pollVotesCount').textContent =
-    `${data.votes || 0} vote${data.votes !== 1 ? 's' : ''} submitted`;
-
-  const sourceMap = pollCurrentTab === 'points' ? (data.points || {}) : (data.mentions || {});
-  const entries = Object.entries(sourceMap).sort((a, b) => b[1] - a[1]).slice(0, 25);
-  const maxVal = entries.length > 0 ? entries[0][1] : 1;
-
-  const lb = document.getElementById('pollLeaderboard');
-  if (!entries.length) {
-    lb.innerHTML = '<div class="poll-empty">No votes yet — be the first!</div>';
-    return;
-  }
-
-  lb.innerHTML = entries.map(([team, val], idx) => {
-    const rank = idx + 1;
-    const rankClass = rank === 1 ? 'poll-lb-rank r1' : rank === 2 ? 'poll-lb-rank r2' : rank === 3 ? 'poll-lb-rank r3' : 'poll-lb-rank';
-    const barPct = Math.round((val / maxVal) * 100);
-    const label = pollCurrentTab === 'points' ? `${val}pt` : `${val}×`;
-    return `<div class="poll-lb-item">
-      <span class="${rankClass}">${rank}</span>
-      <span class="poll-lb-team">${team}</span>
-      <div class="poll-lb-bar-wrap"><div class="poll-lb-bar" style="width:${barPct}%"></div></div>
-      <span class="poll-lb-val">${label}</span>
-    </div>`;
-  }).join('');
-}
+let pollAllResponses = [];
+let pollCurrentResponseIdx = 0;
+let pollPointsMap = {};
+let pollMentionsMap = {};
 
 // ── SET ADJUSTMENTS ──
 const SET_ADJUSTMENTS = [
@@ -2724,11 +2664,12 @@ function closeTools() {
 }
 function switchToolTab(tab) {
   document.querySelectorAll('.tool-tab').forEach((t, i) => {
-    t.classList.toggle('active', ['calculator','predictor','setadj'][i] === tab);
+    t.classList.toggle('active', ['calculator','predictor','setadj','poll'][i] === tab);
   });
   document.getElementById('toolCalculator').classList.toggle('active', tab === 'calculator');
   document.getElementById('toolPredictor').classList.toggle('active', tab === 'predictor');
   document.getElementById('toolSetAdj').classList.toggle('active', tab === 'setadj');
+  document.getElementById('toolPoll').classList.toggle('active', tab === 'poll');
 }
 
 function populateSetDropdowns() {
@@ -2998,32 +2939,34 @@ function runPredictor() {
 
   document.getElementById('predOutput').style.display = 'block';
 }
+
+// ── POLL FUNCTIONS ──
+
 function dismissChampAndOpenPoll() {
     const overlay = document.getElementById('champOverlay');
     if (overlay) {
-        // Smoothly fade out or remove the current SSNCT Champions modal
         overlay.style.opacity = '0';
         setTimeout(() => {
             overlay.remove();
-            // Trigger the next popup in the chain
             showHsnctPollPopup();
         }, 200);
     }
 }
 
 function showHsnctPollPopup() {
-    // 1. Create Overlay
+    const existing = document.getElementById('hsnctPollPopupOverlay');
+    if (existing) existing.remove();
+
     const pollOverlay = document.createElement('div');
-    pollOverlay.id = 'pollOverlay';
-    pollOverlay.style = `
-        position: fixed; inset: 0; background: rgba(0,0,0,0.7); 
-        z-index: 9500; display: flex; align-items: center; 
+    pollOverlay.id = 'hsnctPollPopupOverlay';
+    pollOverlay.style.cssText = `
+        position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+        z-index: 9500; display: flex; align-items: center;
         justify-content: center; backdrop-filter: blur(4px);
     `;
 
-    // 2. Create Modal Content
     const pollModal = document.createElement('div');
-    pollModal.style = `
+    pollModal.style.cssText = `
         background: var(--bg-surface); border: 1px solid var(--border-active);
         border-radius: var(--radius-lg); box-shadow: var(--shadow-panel);
         width: min(400px, calc(100vw - 32px)); padding: 24px; text-align: center;
@@ -3032,16 +2975,17 @@ function showHsnctPollPopup() {
     pollModal.innerHTML = `
         <h3 style="color: var(--text-primary); margin-bottom: 12px; font-size: 18px;">HSNCT Predictions Poll</h3>
         <p style="color: var(--text-secondary); font-size: 13px; line-height: 1.6; margin-bottom: 20px;">
-            Who are your <strong>Top 10</strong> for HSNCT? Fill out the poll to see how your picks compare. 
+            Who are your <strong>Top 10</strong> for HSNCT? Fill out the poll to see how your picks compare.
             Overall responses will appear on the <strong>"HSNCT Poll"</strong> Tab.
         </p>
-        <a href="https://forms.gle/apyZR2vNb3U9t7M37" target="_blank" 
-           style="display: block; background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet)); 
-                  color: white; padding: 12px; border-radius: var(--radius-md); text-decoration: none; 
-                  font-weight: 700; margin-bottom: 12px; font-size: 13px;">
+        <a href="https://forms.gle/apyZR2vNb3U9t7M37" target="_blank"
+           style="display: block; background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+                  color: white; padding: 12px; border-radius: var(--radius-md); text-decoration: none;
+                  font-weight: 700; margin-bottom: 12px; font-size: 13px;"
+           onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
            Fill Out the Poll
         </a>
-        <button id="closePollBtn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px; text-decoration: underline;">
+        <button id="closePollPopupBtn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px; text-decoration: underline; font-family: var(--font-body);">
             Maybe later
         </button>
     `;
@@ -3049,9 +2993,169 @@ function showHsnctPollPopup() {
     pollOverlay.appendChild(pollModal);
     document.body.appendChild(pollOverlay);
 
-    // 3. Add Close Event
-    const closeBtn = pollModal.querySelector('#closePollBtn');
-    closeBtn.onclick = () => pollOverlay.remove();
+    pollModal.querySelector('#closePollPopupBtn').onclick = () => pollOverlay.remove();
+}
+
+function openPollModal() {
+    document.getElementById('pollOverlay').classList.add('visible');
+}
+
+function closePollModal() {
+    document.getElementById('pollOverlay').classList.remove('visible');
+}
+
+// ── POLL TAB SWITCHING (sidebar) ──
+function switchPollTab(tab) {
+    pollCurrentTab = tab;
+    document.getElementById('pollTabPoints').classList.toggle('active', tab === 'points');
+    document.getElementById('pollTabMentions').classList.toggle('active', tab === 'mentions');
+    document.getElementById('pollTabBrowse').classList.toggle('active', tab === 'browse');
+
+    const isLeaderboard = tab === 'points' || tab === 'mentions';
+    document.getElementById('pollLeaderboardView').classList.toggle('hidden', !isLeaderboard);
+    document.getElementById('pollBrowseView').classList.toggle('hidden', tab !== 'browse');
+
+    if (isLeaderboard) {
+        renderPollLeaderboard();
+    } else if (tab === 'browse') {
+        renderPollBallot();
+    }
+}
+
+// ── LOAD POLL RESULTS FROM SHEET ──
+async function loadPollResults() {
+    document.getElementById('pollLeaderboard').innerHTML = '<div class="poll-empty">Loading…</div>';
+    document.getElementById('pollBallotContainer').innerHTML = '<div class="poll-empty">Loading…</div>';
+    document.getElementById('pollVotesCount').textContent = 'Loading...';
+
+    try {
+        const sheetUrl = `https://docs.google.com/spreadsheets/d/1ZiV-l0X4Hlvice0GX7CJZ5YGlXodMcdCNRGVanVzlaA/gviz/tq?tqx=out:csv&sheet=Form%20Responses%201`;
+        const resp = await fetch(sheetUrl);
+        const csvText = await resp.text();
+        const parsed = Papa.parse(csvText, { header: false, skipEmptyLines: true });
+        const rows = parsed.data;
+        const dataRows = rows.slice(1); // skip header row
+
+        pollAllResponses = [];
+        pollPointsMap = {};
+        pollMentionsMap = {};
+
+        dataRows.forEach(cols => {
+            // cols[0] = Timestamp, cols[1] = Email (SKIPPED), cols[2..11] = ranks 1-10
+            const ts = (cols[0] || '').trim();
+            const teams = [];
+            for (let i = 0; i < 10; i++) {
+                const team = (cols[2 + i] || '').trim();
+                if (team) teams.push(team);
+            }
+            if (teams.length === 0) return;
+
+            pollAllResponses.push({ ts, teams });
+
+            const seen = new Set();
+            teams.forEach((team, idx) => {
+                const pts = 10 - idx;
+                pollPointsMap[team] = (pollPointsMap[team] || 0) + pts;
+                if (!seen.has(team)) {
+                    pollMentionsMap[team] = (pollMentionsMap[team] || 0) + 1;
+                    seen.add(team);
+                }
+            });
+        });
+
+        const voteCount = pollAllResponses.length;
+        document.getElementById('pollVotesCount').textContent =
+            `${voteCount} vote${voteCount !== 1 ? 's' : ''} submitted`;
+
+        pollCurrentResponseIdx = 0;
+
+        if (pollCurrentTab === 'browse') {
+            renderPollBallot();
+        } else {
+            renderPollLeaderboard();
+        }
+    } catch(e) {
+        console.error('Poll load error:', e);
+        document.getElementById('pollLeaderboard').innerHTML = '<div class="poll-empty">Could not load results.</div>';
+        document.getElementById('pollBallotContainer').innerHTML = '<div class="poll-empty">Could not load results.</div>';
+        document.getElementById('pollVotesCount').textContent = 'Error loading';
+    }
+}
+
+// ── RENDER LEADERBOARD ──
+function renderPollLeaderboard() {
+    const sourceMap = pollCurrentTab === 'points' ? pollPointsMap : pollMentionsMap;
+    const entries = Object.entries(sourceMap).sort((a, b) => b[1] - a[1]).slice(0, 25);
+    const maxVal = entries.length > 0 ? entries[0][1] : 1;
+    const suffix = pollCurrentTab === 'points' ? 'pt' : '×';
+
+    const lb = document.getElementById('pollLeaderboard');
+    if (!entries.length) {
+        lb.innerHTML = '<div class="poll-empty">No votes yet — be the first!</div>';
+        return;
+    }
+
+    lb.innerHTML = entries.map(([team, val], idx) => {
+        const rank = idx + 1;
+        const rankClass = rank === 1 ? 'poll-lb-rank r1' : rank === 2 ? 'poll-lb-rank r2' : rank === 3 ? 'poll-lb-rank r3' : 'poll-lb-rank';
+        const barPct = Math.round((val / maxVal) * 100);
+        return `<div class="poll-lb-item">
+            <span class="${rankClass}">${rank}</span>
+            <span class="poll-lb-team">${team}</span>
+            <div class="poll-lb-bar-wrap"><div class="poll-lb-bar" style="width:${barPct}%"></div></div>
+            <span class="poll-lb-val">${val}${suffix}</span>
+        </div>`;
+    }).join('');
+}
+
+// ── BROWSE RESPONSES NAVIGATION ──
+function changePollResponse(dir) {
+    pollCurrentResponseIdx = Math.max(0, Math.min(pollAllResponses.length - 1, pollCurrentResponseIdx + dir));
+    renderPollBallot();
+}
+
+// ── RENDER INDIVIDUAL BALLOT ──
+function renderPollBallot() {
+    const counter = document.getElementById('pollBrowseCounter');
+    const container = document.getElementById('pollBallotContainer');
+    const btnPrev = document.getElementById('pollBrowsePrev');
+    const btnNext = document.getElementById('pollBrowseNext');
+
+    if (!pollAllResponses.length) {
+        counter.textContent = '0 / 0';
+        container.innerHTML = '<div class="poll-empty">No responses yet.</div>';
+        btnPrev.disabled = true;
+        btnNext.disabled = true;
+        return;
+    }
+
+    counter.textContent = `${pollCurrentResponseIdx + 1} / ${pollAllResponses.length}`;
+    btnPrev.disabled = pollCurrentResponseIdx === 0;
+    btnNext.disabled = pollCurrentResponseIdx === pollAllResponses.length - 1;
+
+    const resp = pollAllResponses[pollCurrentResponseIdx];
+    // Show timestamp but strip seconds for brevity; never show email (col B is never read)
+    const tsDisplay = resp.ts ? resp.ts.replace(/:\d{2}\s*(AM|PM)?$/i, '$1').trim() : 'Unknown time';
+
+    const items = resp.teams.map((team, idx) => {
+        const pos = idx + 1;
+        const pts = 10 - idx;
+        const posClass = pos <= 3 ? 'poll-ballot-pos top3' : 'poll-ballot-pos';
+        return `<div class="poll-ballot-item">
+            <span class="${posClass}">${pos}</span>
+            <span class="poll-ballot-team">${team}</span>
+            <span class="poll-ballot-pts">${pts}pt</span>
+        </div>`;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="poll-ballot-card">
+            <div class="poll-ballot-header">
+                <span class="poll-ballot-anon">Anonymous submission</span>
+                <span class="poll-ballot-ts">${tsDisplay}</span>
+            </div>
+            ${items}
+        </div>`;
 }
 </script>
 </body>
