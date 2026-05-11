@@ -1366,13 +1366,13 @@
 <div id="champOverlay">
   <div id="champModal">
     <div class="champ-modal-header">
-      <span class="champ-modal-title">Congrats to your 2026 SSNCT Champions!</span>
+      <span class="champ-modal-title">Congrats to your 2026 Champions!</span>
     </div>
 
     <div class="champ-card">
       <div class="champ-card-accent"></div>
       <div class="champ-card-body">
-        <div class="champ-card-div">Open Division</div>
+        <div class="champ-card-div">SSNCT Open Division</div>
         <div class="champ-card-team">Park Tudor (IN) A</div>
       </div>
     </div>
@@ -1380,7 +1380,7 @@
     <div class="champ-card">
       <div class="champ-card-accent"></div>
       <div class="champ-card-body">
-        <div class="champ-card-div">Traditional Public Schools Division</div>
+        <div class="champ-card-div">SSNCT Traditional Public Schools Division</div>
         <div class="champ-card-team">Russell (KY) A</div>
       </div>
     </div>
@@ -1388,8 +1388,16 @@
     <div class="champ-card">
       <div class="champ-card-accent"></div>
       <div class="champ-card-body">
-        <div class="champ-card-div">Very Small Schools Division</div>
+        <div class="champ-card-div">SSNCT Very Small Schools Division</div>
         <div class="champ-card-team">New Berlin (IL) A</div>
+      </div>
+    </div>
+
+    <div class="champ-card">
+      <div class="champ-card-accent"></div>
+      <div class="champ-card-body">
+        <div class="champ-card-div">MSNCT</div>
+        <div class="champ-card-team">St. Mark's School of Texas Middle (TX) A</div>
       </div>
     </div>
 
@@ -1866,7 +1874,7 @@ const SSNCT_SHEET_MAP = {
 };
 
 // ── CHAMPION TEAMS ──
-const CHAMP_TEAMS = ['Park Tudor (IN) A', 'Russell (KY) A', 'New Berlin (IL) A'];
+const CHAMP_TEAMS = ['Park Tudor (IN) A', 'Russell (KY) A', 'New Berlin (IL) A', "St. Mark's School of Texas Middle (TX) A"];
 
 function isChampTeam(name) {
   return CHAMP_TEAMS.some(c => name && name.trim() === c);
@@ -2437,6 +2445,7 @@ const teamDescriptions = {
     "South Range (OH) A": "2010 Small School Title",
     "Early College at Guilford (NC) A": "2018 SSNCT Open Division Champions",
     "West Point (AL) A": "2025 SSNCT Traditional Public Schools Division Champions",
+    "St. Mark's School of Texas Middle (TX) A": "2026 MSNCT Champions",
 };
 
 function makePopupHTML(teamObj) {
