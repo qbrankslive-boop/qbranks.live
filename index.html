@@ -1362,7 +1362,6 @@
 </head>
 <body>
 
-<!-- ── CHAMPIONSHIP POPUP ── -->
 <div id="champOverlay">
   <div id="champModal">
     <div class="champ-modal-header">
@@ -1400,6 +1399,15 @@
         <div class="champ-card-team">St. Mark's School of Texas Middle (TX) A</div>
       </div>
     </div>
+
+    <div class="champ-card">
+        <div class="champ-card-accent"></div>
+        <div class="champ-card-body">
+          <div class="champ-card-div">HSNCT</div>
+          <div class="champ-card-team">Stevenson (IL) A</div>
+        </div>
+      </div>
+  
 
     <div class="champ-modal-footer">
       <button class="champ-close-btn" onclick="dismissChampAndOpenPoll()">
@@ -1874,7 +1882,7 @@ const SSNCT_SHEET_MAP = {
 };
 
 // ── CHAMPION TEAMS ──
-const CHAMP_TEAMS = ['Park Tudor (IN) A', 'Russell (KY) A', 'New Berlin (IL) A', "St. Mark's School of Texas Middle (TX) A"];
+const CHAMP_TEAMS = ['Park Tudor (IN) A', 'Russell (KY) A', 'New Berlin (IL) A', "St. Mark's School of Texas Middle (TX) A", "Stevenson (IL) A"];
 
 function isChampTeam(name) {
   return CHAMP_TEAMS.some(c => name && name.trim() === c);
@@ -2949,7 +2957,6 @@ function runPredictor() {
   document.getElementById('predOutput').style.display = 'block';
 }
 
-// ── POLL FUNCTIONS ──
 
 function dismissChampAndOpenPoll() {
     const overlay = document.getElementById('champOverlay');
@@ -2957,7 +2964,6 @@ function dismissChampAndOpenPoll() {
         overlay.style.opacity = '0';
         setTimeout(() => {
             overlay.remove();
-            showHsnctPollPopup();
         }, 200);
     }
 }
@@ -3013,7 +3019,6 @@ function closePollModal() {
     document.getElementById('pollOverlay').classList.remove('visible');
 }
 
-// ── POLL TAB SWITCHING (sidebar) ──
 function switchPollTab(tab) {
     pollCurrentTab = tab;
     document.getElementById('pollTabPoints').classList.toggle('active', tab === 'points');
@@ -3031,7 +3036,6 @@ function switchPollTab(tab) {
     }
 }
 
-// ── LOAD POLL RESULTS FROM SHEET ──
 async function loadPollResults() {
     document.getElementById('pollLeaderboard').innerHTML = '<div class="poll-empty">Loading…</div>';
     document.getElementById('pollBallotContainer').innerHTML = '<div class="poll-empty">Loading…</div>';
@@ -3043,14 +3047,13 @@ async function loadPollResults() {
         const csvText = await resp.text();
         const parsed = Papa.parse(csvText, { header: false, skipEmptyLines: true });
         const rows = parsed.data;
-        const dataRows = rows.slice(1); // skip header row
+        const dataRows = rows.slice(1);
 
         pollAllResponses = [];
         pollPointsMap = {};
         pollMentionsMap = {};
 
         dataRows.forEach(cols => {
-            // cols[0] = Timestamp, cols[1] = Email (SKIPPED), cols[2..11] = ranks 1-10
             const ts = (cols[0] || '').trim();
             const teams = [];
             for (let i = 0; i < 10; i++) {
@@ -3143,7 +3146,6 @@ function renderPollBallot() {
     btnNext.disabled = pollCurrentResponseIdx === pollAllResponses.length - 1;
 
     const resp = pollAllResponses[pollCurrentResponseIdx];
-    // Show timestamp but strip seconds for brevity; never show email (col B is never read)
     const tsDisplay = resp.ts ? resp.ts.replace(/:\d{2}\s*(AM|PM)?$/i, '$1').trim() : 'Unknown time';
 
     const items = resp.teams.map((team, idx) => {
