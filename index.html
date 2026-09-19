@@ -12,6 +12,7 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -943,12 +944,13 @@
       inset: 0;
       background: rgba(0,0,0,0.6);
       z-index: 9000;
-      display: flex;
+      display: none;
       align-items: center;
       justify-content: center;
       backdrop-filter: blur(4px);
       animation: fadeInOverlay 0.25s ease;
     }
+    #champOverlay.visible { display: flex; }
     @keyframes fadeInOverlay { from { opacity:0 } to { opacity:1 } }
 
     #champModal {
@@ -1473,6 +1475,16 @@
   <div class="panel-body">
 
     <div class="filter-section">
+      <div class="control-group">
+        <label>Year</label>
+        <select id="yearSelector" onchange="handleYearChange()">
+          <option value="2026-2027" selected>2026-2027</option>
+          <option value="2025-2026">2025-2026</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="filter-section">
       <div class="control-group search-wrapper">
         <label>Search team</label>
         <input type="text" id="teamSearch" placeholder="Type team name…" oninput="handleSearchInput()" autocomplete="off">
@@ -1868,27 +1880,109 @@ const PRED = {
   STD_DEV: 180
 };
 
-const SHEET_ID = "1ZiV-l0X4Hlvice0GX7CJZ5YGlXodMcdCNRGVanVzlaA";
-const LOCATION_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Location%20Data`;
-const OVERALL_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1322713749`;
-const OVERALL_NAQT_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=81041869`;
-const OVERALL_MACF_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=2002621808`;
-const HS_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=39357228`;
-const HS_NAQT_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=911106844`;
-const HS_MACF_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=520787947`;
-const MS_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1050804017`;
-const MS_NAQT_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=566842992`;
-const MS_MACF_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1791150640`;
+// ── YEAR BACKENDS ──
+// 2026-2027 uses the existing live workbook and all of its current sheets.
+// 2025-2026 uses the published workbook supplied for the previous season.
+// The two workbooks intentionally use the same sheet format.
+const CURRENT_SHEET_ID = "1ZiV-l0X4Hlvice0GX7CJZ5YGlXodMcdCNRGVanVzlaA";
+const PREVIOUS_PUBLISHED_ID = "2PACX-1vTka28WLhMKchQTATANnCeeZcN8f-_Sa8VtH7ldCC00xOjG9JeqtrpFZZ8k9lhuXHg2jkwMZnT_0a2s";
 
-const SSNCT_TPE_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=SSNCT%20(TPE)`;
-const SSNCT_VSS_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=SSNCT%20(VSS)`;
-const SSNCT_OPEN_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=SSNCT%20(Open)`;
+const CURRENT_SHEET = (sheetName) =>
+  `https://docs.google.com/spreadsheets/d/${CURRENT_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+
+const CURRENT_GID = (gid) =>
+  `https://docs.google.com/spreadsheets/d/${CURRENT_SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
+
+const PREVIOUS_XLSX = `https://docs.google.com/spreadsheets/d/e/${PREVIOUS_PUBLISHED_ID}/pub?output=xlsx`;
+let previousWorkbookPromise = null;
+
+async function loadPreviousWorkbook() {
+  if (!previousWorkbookPromise) {
+    previousWorkbookPromise = fetch(PREVIOUS_XLSX)
+      .then(response => {
+        if (!response.ok) throw new Error(`Previous-season workbook request failed (${response.status})`);
+        return response.arrayBuffer();
+      })
+      .then(buffer => XLSX.read(buffer, { type: 'array' }));
+  }
+  return previousWorkbookPromise;
+}
+
+const PREVIOUS_SHEET = (sheetName) => `previous-sheet:${sheetName}`;
+
+async function loadPreviousSheet(sheetName) {
+  const workbook = await loadPreviousWorkbook();
+  const actualName = workbook.SheetNames.find(
+    name => name.trim().toLowerCase() === sheetName.trim().toLowerCase()
+  );
+  if (!actualName) {
+    throw new Error(`Previous-season sheet "${sheetName}" was not found. Available sheets: ${workbook.SheetNames.join(', ')}`);
+  }
+  const sheet = workbook.Sheets[actualName];
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  const headers = rows[0] || [];
+  return rows.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = row[i]; });
+    return obj;
+  });
+}
+
+// Sheet names used by the current workbook. The previous workbook has the same format.
+const LOCATION_SHEET_NAME = "Location Data";
+const OVERALL_SHEET_NAME = "Overall";
+const OVERALL_NAQT_SHEET_NAME = "Overall NAQT";
+const OVERALL_MACF_SHEET_NAME = "Overall mACF";
+const HS_SHEET_NAME = "HS";
+const HS_NAQT_SHEET_NAME = "HS NAQT";
+const HS_MACF_SHEET_NAME = "HS mACF";
+const MS_SHEET_NAME = "MS";
+const MS_NAQT_SHEET_NAME = "MS NAQT";
+const MS_MACF_SHEET_NAME = "MS mACF";
+const SSNCT_TPE_SHEET_NAME = "SSNCT (TPE)";
+const SSNCT_VSS_SHEET_NAME = "SSNCT (VSS)";
+const SSNCT_OPEN_SHEET_NAME = "SSNCT (Open)";
+
+// Existing current-year URLs are kept exactly as they were for 2026-2027.
+const LOCATION_SHEET = CURRENT_SHEET(LOCATION_SHEET_NAME);
+const OVERALL_SHEET = CURRENT_GID(1322713749);
+const OVERALL_NAQT_SHEET = CURRENT_GID(81041869);
+const OVERALL_MACF_SHEET = CURRENT_GID(2002621808);
+const HS_SHEET = CURRENT_GID(39357228);
+const HS_NAQT_SHEET = CURRENT_GID(911106844);
+const HS_MACF_SHEET = CURRENT_GID(520787947);
+const MS_SHEET = CURRENT_GID(1050804017);
+const MS_NAQT_SHEET = CURRENT_GID(566842992);
+const MS_MACF_SHEET = CURRENT_GID(1791150640);
+
+const SSNCT_TPE_SHEET = CURRENT_SHEET(SSNCT_TPE_SHEET_NAME);
+const SSNCT_VSS_SHEET = CURRENT_SHEET(SSNCT_VSS_SHEET_NAME);
+const SSNCT_OPEN_SHEET = CURRENT_SHEET(SSNCT_OPEN_SHEET_NAME);
 
 const SSNCT_SHEET_MAP = {
   tpe: SSNCT_TPE_SHEET,
   vss: SSNCT_VSS_SHEET,
   open: SSNCT_OPEN_SHEET
 };
+
+function getYear() {
+  return document.getElementById('yearSelector')?.value || '2026-2027';
+}
+
+function getLocationURL() {
+  return getYear() === '2025-2026'
+    ? PREVIOUS_SHEET(LOCATION_SHEET_NAME)
+    : LOCATION_SHEET;
+}
+
+function getYearSSNCTSheetMap() {
+  if (getYear() !== '2025-2026') return SSNCT_SHEET_MAP;
+  return {
+    tpe: PREVIOUS_SHEET(SSNCT_TPE_SHEET_NAME),
+    vss: PREVIOUS_SHEET(SSNCT_VSS_SHEET_NAME),
+    open: PREVIOUS_SHEET(SSNCT_OPEN_SHEET_NAME)
+  };
+}
 
 // ── CHAMPION TEAMS ──
 const CHAMP_TEAMS = ['Park Tudor (IN) A', 'Russell (KY) A', 'New Berlin (IL) A', "St. Mark's School of Texas Middle (TX) A", "Stevenson (IL) A", "Lexington (MA) A"];
@@ -2008,6 +2102,9 @@ window.addEventListener('load', function() {
   map.on('popupopen', handlePopupOpen);
   map.on('popupclose', hideNearbyTeamsPanel);
   map.on('zoomend', function() { updateSizes(); });
+  const initialYear = document.getElementById('yearSelector')?.value || '2026-2027';
+  const champOverlay = document.getElementById('champOverlay');
+  if (champOverlay) champOverlay.classList.toggle('visible', initialYear === '2025-2026');
   populateSetDropdowns();
   renderAdjTable();
   initCalcRows();
@@ -2062,28 +2159,46 @@ function clearData() {
 
 function getOverallURL() {
   const ssnct = document.getElementById('ssnctDivision').value;
-  if (ssnct) return SSNCT_SHEET_MAP[ssnct];
+  const ssnctMap = getYearSSNCTSheetMap();
+  if (ssnct) return ssnctMap[ssnct];
 
   const hs = document.getElementById('gradeHS').checked;
   const ms = document.getElementById('gradeMS').checked;
   const naqt = document.getElementById('setNAQT').checked;
   const macf = document.getElementById('setmACF').checked;
-  
-  if (hs && ms && naqt && macf) return OVERALL_SHEET;
-  if (ms && !hs && naqt && macf) return MS_SHEET;
-  if (hs && !ms && naqt && macf) return HS_SHEET;
-  if (ms && hs && naqt && !macf) return OVERALL_NAQT_SHEET;
-  if (ms && hs && !naqt && macf) return OVERALL_MACF_SHEET;
-  if (ms && !hs && naqt && !macf) return MS_NAQT_SHEET;
-  if (ms && !hs && !naqt && macf) return MS_MACF_SHEET;
-  if (hs && !ms && naqt && !macf) return HS_NAQT_SHEET;
-  if (hs && !ms && !naqt && macf) return HS_MACF_SHEET;
-  if (hs && !ms && !naqt && !macf) return HS_SHEET;
-  if (ms && !hs && !naqt && !macf) return MS_SHEET;
-  if (!hs && !ms && naqt && !macf) return OVERALL_NAQT_SHEET;
-  if (!hs && !ms && !naqt && macf) return OVERALL_MACF_SHEET;
-  if (!hs && !ms && !naqt && !macf) return OVERALL_SHEET;
-  return OVERALL_SHEET;
+  const isPrevious = getYear() === '2025-2026';
+
+  const overall = isPrevious ? PREVIOUS_SHEET(OVERALL_SHEET_NAME) : OVERALL_SHEET;
+  const overallNAQT = isPrevious ? PREVIOUS_SHEET(OVERALL_NAQT_SHEET_NAME) : OVERALL_NAQT_SHEET;
+  const overallMACF = isPrevious ? PREVIOUS_SHEET(OVERALL_MACF_SHEET_NAME) : OVERALL_MACF_SHEET;
+  const hsSheet = isPrevious ? PREVIOUS_SHEET(HS_SHEET_NAME) : HS_SHEET;
+  const hsNAQT = isPrevious ? PREVIOUS_SHEET(HS_NAQT_SHEET_NAME) : HS_NAQT_SHEET;
+  const hsMACF = isPrevious ? PREVIOUS_SHEET(HS_MACF_SHEET_NAME) : HS_MACF_SHEET;
+  const msSheet = isPrevious ? PREVIOUS_SHEET(MS_SHEET_NAME) : MS_SHEET;
+  const msNAQT = isPrevious ? PREVIOUS_SHEET(MS_NAQT_SHEET_NAME) : MS_NAQT_SHEET;
+  const msMACF = isPrevious ? PREVIOUS_SHEET(MS_MACF_SHEET_NAME) : MS_MACF_SHEET;
+
+  if (hs && ms && naqt && macf) return overall;
+  if (ms && !hs && naqt && macf) return msSheet;
+  if (hs && !ms && naqt && macf) return hsSheet;
+  if (ms && hs && naqt && !macf) return overallNAQT;
+  if (ms && hs && !naqt && macf) return overallMACF;
+  if (ms && !hs && naqt && !macf) return msNAQT;
+  if (ms && !hs && !naqt && macf) return msMACF;
+  if (hs && !ms && naqt && !macf) return hsNAQT;
+  if (hs && !ms && !naqt && macf) return hsMACF;
+  if (hs && !ms && !naqt && !macf) return hsSheet;
+  if (ms && !hs && !naqt && !macf) return msSheet;
+  if (!hs && !ms && naqt && !macf) return overallNAQT;
+  if (!hs && !ms && !naqt && macf) return overallMACF;
+  if (!hs && !ms && !naqt && !macf) return overall;
+  return overall;
+}
+
+function handleYearChange() {
+  const overlay = document.getElementById('champOverlay');
+  if (overlay) overlay.classList.toggle('visible', getYear() === '2025-2026');
+  refreshData();
 }
 
 function handleGradeToggle() { refreshData(); }
@@ -2097,18 +2212,30 @@ async function refreshData() {
 
 async function loadData() {
   try {
-    const locUrl = LOCATION_SHEET;
+    const locUrl = getLocationURL();
     const overallUrl = getOverallURL();
 
-    const [locData, scoreData] = await Promise.all([ loadCSV(locUrl), loadCSV(overallUrl) ]);
+    const loadSource = source => source.startsWith('previous-sheet:')
+      ? loadPreviousSheet(source.slice('previous-sheet:'.length))
+      : loadCSV(source);
+
+    const [locData, scoreData] = await Promise.all([ loadSource(locUrl), loadSource(overallUrl) ]);
     window._debug = scoreData;
     const cleanedScoreData = scoreData.filter(row => {
       const firstVal = String(Object.values(row)[0] || '').trim();
       return firstVal !== '' && !isNaN(parseInt(firstVal));
     });
 
-    const SSNCT_URLS = Object.values(SSNCT_SHEET_MAP);
-    const isOverallType = (overallUrl === OVERALL_SHEET || overallUrl === OVERALL_NAQT_SHEET || overallUrl === OVERALL_MACF_SHEET || SSNCT_URLS.includes(overallUrl));
+    const currentSSNCTUrls = Object.values(SSNCT_SHEET_MAP);
+    const previousSSNCTUrls = Object.values(getYearSSNCTSheetMap());
+    const SSNCT_URLS = [...currentSSNCTUrls, ...previousSSNCTUrls];
+    const isOverallType = (
+      overallUrl === OVERALL_SHEET ||
+      overallUrl === OVERALL_NAQT_SHEET ||
+      overallUrl === OVERALL_MACF_SHEET ||
+      SSNCT_URLS.includes(overallUrl) ||
+      getYear() === '2025-2026'
+    );
     
     let teamColumnName, rankColumnName, scoreColumnName, bestSetColumnName, bestTournColumnName;
     
