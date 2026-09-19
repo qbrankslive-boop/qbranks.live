@@ -1894,38 +1894,50 @@ const CURRENT_GID = (gid) =>
   `https://docs.google.com/spreadsheets/d/${CURRENT_SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
 
 const PREVIOUS_XLSX = `https://docs.google.com/spreadsheets/d/e/${PREVIOUS_PUBLISHED_ID}/pub?output=xlsx`;
-let previousWorkbookPromise = null;
+
+// Start downloading the previous-season workbook immediately, in parallel with
+// the normal 2026-2027 page load. The old implementation waited until the user
+// switched years, which meant the entire workbook had to download at that point.
+let previousWorkbookPromise = fetch(PREVIOUS_XLSX)
+  .then(response => {
+    if (!response.ok) throw new Error(`Previous-season workbook request failed (${response.status})`);
+    return response.arrayBuffer();
+  })
+  .then(buffer => XLSX.read(buffer, { type: 'array' }));
+
+// Once the workbook is parsed, keep each sheet's converted rows in memory so
+// switching years (or switching filters while on 2025-2026) does not reparse it.
+const previousSheetCache = new Map();
 
 async function loadPreviousWorkbook() {
-  if (!previousWorkbookPromise) {
-    previousWorkbookPromise = fetch(PREVIOUS_XLSX)
-      .then(response => {
-        if (!response.ok) throw new Error(`Previous-season workbook request failed (${response.status})`);
-        return response.arrayBuffer();
-      })
-      .then(buffer => XLSX.read(buffer, { type: 'array' }));
-  }
   return previousWorkbookPromise;
 }
 
 const PREVIOUS_SHEET = (sheetName) => `previous-sheet:${sheetName}`;
 
 async function loadPreviousSheet(sheetName) {
+  const cacheKey = sheetName.trim().toLowerCase();
+  if (previousSheetCache.has(cacheKey)) return previousSheetCache.get(cacheKey);
+
   const workbook = await loadPreviousWorkbook();
   const actualName = workbook.SheetNames.find(
-    name => name.trim().toLowerCase() === sheetName.trim().toLowerCase()
+    name => name.trim().toLowerCase() === cacheKey
   );
   if (!actualName) {
     throw new Error(`Previous-season sheet "${sheetName}" was not found. Available sheets: ${workbook.SheetNames.join(', ')}`);
   }
+
   const sheet = workbook.Sheets[actualName];
   const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
   const headers = rows[0] || [];
-  return rows.slice(1).map(row => {
+  const objects = rows.slice(1).map(row => {
     const obj = {};
     headers.forEach((h, i) => { obj[h] = row[i]; });
     return obj;
   });
+
+  previousSheetCache.set(cacheKey, objects);
+  return objects;
 }
 
 // Sheet names used by the current workbook. The previous workbook has the same format.
