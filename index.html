@@ -1980,6 +1980,7 @@ const accoladesData = [
     { title: "2026 SSNCT Traditional Public Schools Champion", detail: "Russell (KY) A" },
     { title: "2026 SSNCT Very Small Schools Champion", detail: "New Berlin (IL) A" },
 ];
+const CARTO_BASEMAP_API_KEY = 'cb1_3lcr_1_e55767427fca9f141f64fbd2';
 
 let map;
 let currentTileLayer;
@@ -1995,7 +1996,7 @@ let calcRowCount = 0;
 
 window.addEventListener('load', function() {
   map = L.map('map').setView([39, -95], 4);
-  currentTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  currentTileLayer = L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(CARTO_BASEMAP_API_KEY)}`, {
     maxZoom: 18,
     attribution: '© OpenStreetMap contributors, © CARTO'
   }).addTo(map);
@@ -2015,7 +2016,7 @@ window.addEventListener('load', function() {
 function createTileLayer(isDark) {
   if (currentTileLayer) { map.removeLayer(currentTileLayer); }
   if (isDark) {
-    currentTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 18, attribution: '© OpenStreetMap contributors, © CARTO' }).addTo(map);
+    currentTileLayer = L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(CARTO_BASEMAP_API_KEY)}`, { maxZoom: 18, attribution: '© OpenStreetMap contributors, © CARTO' }).addTo(map);
   } else {
     currentTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap contributors' }).addTo(map);
   }
